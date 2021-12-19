@@ -1,0 +1,25 @@
+{
+  "name": "jai-ambe-api",
+  "version": "1.0.0",
+  "description": "A REST API for Jai-Ambe realtors website",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rshrj/jai-ambe-api.git"
+  },
+  "keywords": [
+    "Jai",
+    "Ambe",
+    "Realtors",
+    "API"
+  ],
+  "author": "Rishi Raj \"rishiraj.1012exp@gmail.com\"",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/rshrj/jai-ambe-api/issues"
+  },
+  "homepage": "https://github.com/rshrj/jai-ambe-api#readme"
+}
