@@ -22,6 +22,7 @@ require("./utils/auth/passport");
 app.use("/users", require("./routes/users"));
 app.use("/auth", require("./routes/auth"));
 app.use("/property", require("./routes/property"));
+app.use("/testimonial", require("./routes/testimonial"));
 
 // Port to listen on
 const port = process.env.PORT || 5000;
