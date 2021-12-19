@@ -83,16 +83,16 @@ router.post("/signup", async (req, res, next) => {
   try {
     await newUser.save();
 
-    await sendMail({
-      to: newUser.email,
-      from: process.env.SMTPUSER,
-      subject: "Welcome to Engolee PDS. Please verify your email",
-      template: "emailVerification",
-      templateVars: {
-        name: newUser.name.first,
-        verificationLink: `http://localhost:5000/auth/verify/${newUser.verificationToken}`,
-      },
-    });
+    // await sendMail({
+    //   to: newUser.email,
+    //   from: process.env.SMTPUSER,
+    //   subject: "Welcome to Engolee PDS. Please verify your email",
+    //   template: "emailVerification",
+    //   templateVars: {
+    //     name: newUser.name.first,
+    //     verificationLink: `http://localhost:5000/auth/verify/${newUser.verificationToken}`,
+    //   },
+    // });
 
     const token = newUser.generateAuthToken();
 

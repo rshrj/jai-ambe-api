@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 const { checkLogin } = require("../utils/validation/auth");
 const User = require("../models/User/User");
@@ -38,7 +39,7 @@ router.post("/login", async (req, res, next) => {
           });
         }
 
-        const token = user.generateAuthToken();
+        const token = jwt.sign(user, process.env.JWTSECRET);
 
         console.log(req.user);
 
