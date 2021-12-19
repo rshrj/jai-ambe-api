@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const PropertySchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
   lookingTo: {
     type: String,
     enum: ["SELL", "RESALE", "RENT"],
