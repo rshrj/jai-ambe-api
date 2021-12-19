@@ -7,6 +7,25 @@ const sendMail = require("../utils/mailing/sendmail");
 const User = require("../models/User/User");
 const { ADMIN, CUSTOMER } = require("../models/User/roles");
 const auth = require("../utils/auth");
+const mongoose = require("mongoose");
+
+router.get("/all", auth(ADMIN), async (req, res) => {
+  try {
+    const users = await User.find();
+
+    return res.status(200).json({
+      success: true,
+      payload: users,
+      message: "Users fetched successfully.",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occured",
+    });
+  }
+});
 
 // Details about the currently logged in user
 router.get("/me", auth(ADMIN, CUSTOMER), async (req, res, next) => {
@@ -152,6 +171,76 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occured",
+    });
+  }
+});
+
+router.delete("/", auth(ADMIN), async (req, res) => {
+  const { userId } = req.body;
+
+  if (!mongoose.isValidObjectId(userId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid userId provided." });
+  }
+
+  try {
+    let user = await User.findByIdAndDelete(userId);
+
+    if (user) {
+      return res.status(200).json({
+        success: true,
+        payload: user,
+        message: "User deleted successfully.",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "User with the given userId was not found.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occured",
+    });
+  }
+});
+
+router.post("/reset-password", auth(ADMIN), async (req, res) => {
+  const { userId } = req.body;
+
+  if (!mongoose.isValidObjectId(userId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid userId provided." });
+  }
+
+  try {
+    let user = await User.findById(userId);
+
+    if (user) {
+      const salt = bcrypt.genSaltSync(10);
+      user.password = bcrypt.hashSync(user.email, salt);
+      await user.save();
+
+      return res.status(200).json({
+        success: true,
+        payload: {},
+        message: "Password reset successfully.",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "User with the given userId was not found.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
     return res.status(500).json({
       success: false,
       message: "Server error occured",
