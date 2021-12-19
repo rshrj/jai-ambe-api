@@ -6,4 +6,5 @@ module.exports.checkTestimonial = Joi.object({
   image: Joi.string(),
   mobile: Joi.string().length(10),
   testimonial: Joi.string().min(100).required(),
+  show: Joi.boolean(),
 });
