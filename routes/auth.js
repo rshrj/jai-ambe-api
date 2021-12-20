@@ -5,6 +5,10 @@ const jwt = require("jsonwebtoken");
 const { checkLogin } = require("../utils/validation/auth");
 const User = require("../models/User/User");
 
+
+// @route   POST auth/login
+// @desc    For login
+// @access  Public
 router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -53,6 +57,10 @@ router.post("/login", async (req, res, next) => {
   )(req, res, next);
 });
 
+
+// @route   GET auth/verify/:token
+// @desc    To verify user via token
+// @access  Public
 router.get("/verify/:token", async (req, res) => {
   const { token } = req.params;
 

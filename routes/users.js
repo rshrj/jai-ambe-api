@@ -9,6 +9,9 @@ const { ADMIN, CUSTOMER } = require("../models/User/roles");
 const auth = require("../utils/auth");
 const mongoose = require("mongoose");
 
+// @route   GET users/all
+// @desc    To get all users data
+// @access  ADMIN
 router.get("/all", auth(ADMIN), async (req, res) => {
   try {
     const users = await User.find();
@@ -27,7 +30,10 @@ router.get("/all", auth(ADMIN), async (req, res) => {
   }
 });
 
-// Details about the currently logged in user
+
+// @route   GET users/me
+// @desc    To get your own data.
+// @access  ADMIN, CUSTOMER
 router.get("/me", auth(ADMIN, CUSTOMER), async (req, res, next) => {
   try {
     const user = await User.findById(
@@ -41,6 +47,7 @@ router.get("/me", auth(ADMIN, CUSTOMER), async (req, res, next) => {
         message: "Unable to get user details",
       });
     }
+
     console.log(req.user);
     return res.json({
       success: true,
@@ -57,6 +64,11 @@ router.get("/me", auth(ADMIN, CUSTOMER), async (req, res, next) => {
   }
 });
 
+
+// @route   POST users/signup
+// @desc    To signup a user.
+//          body => { email, name: { first, last }, password, password2 }
+// @access  PUBLIC
 router.post("/signup", async (req, res, next) => {
   const {
     email,
@@ -130,6 +142,11 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
+
+// @route   PUT users/update
+// @desc    To update a user profile.
+//          body => { email, name: { first, last }, password }
+// @access  ADMIN, CUSTOMER
 router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
   let {
     user: { _id: userId },
@@ -178,6 +195,11 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
+// @route   DELETE users/
+// @desc    To delete a user.
+//          body => { userId }
+// @access  ADMIN
 router.delete("/", auth(ADMIN), async (req, res) => {
   const { userId } = req.body;
 
@@ -211,6 +233,11 @@ router.delete("/", auth(ADMIN), async (req, res) => {
   }
 });
 
+
+// @route   POST users/reset-password
+// @desc    To reset password a user's password
+//          body => { userId }
+// @access  ADMIN
 router.post("/reset-password", auth(ADMIN), async (req, res) => {
   const { userId } = req.body;
 

@@ -6,11 +6,14 @@ const { ADMIN, CUSTOMER } = require("../models/User/roles");
 const mongoose = require("mongoose");
 
 /*
+  PENDING WORK:
     => image upload part is pending in /add & /create routes.
     => /create needs discussion for fields.
 */
 
-//To Fetch all testimonial
+// @route   GET testimonial/all
+// @desc    To Fetch all testimonial
+// @access  ADMIN
 router.get("/all", auth(ADMIN), async (req, res) => {
   try {
     const testimonials = await Testimonial.find();
@@ -29,7 +32,10 @@ router.get("/all", auth(ADMIN), async (req, res) => {
   }
 });
 
-//To fetch all approved testimonials to display on website.
+
+// @route   GET testimonial/show
+// @desc    To fetch all approved testimonials to display on website.
+// @access  ADMIN
 router.get("/show", async (req, res) => {
   try {
     const testimonials = await Testimonial.find({ show: true });
@@ -48,7 +54,11 @@ router.get("/show", async (req, res) => {
   }
 });
 
-//This route is for not registered user who can give testimonial via form.
+
+// @route   POST testimonial/add
+// @desc    To add new testimonial via form on website.
+//          body => { name, company, image, mobile, testimonial }
+// @access  Public
 router.post("/add", async (req, res) => {
   const { body } = req;
   const { error, value } = checkTestimonial.validate({
@@ -80,7 +90,11 @@ router.post("/add", async (req, res) => {
   }
 });
 
-//For registered users
+
+// @route   POST testimonial/create
+// @desc    To add new testimonial by existing user.
+//          body => { name, company, image, mobile, testimonial }
+// @access  CUSTOMER, ADMIN
 router.post("/create", auth(CUSTOMER, ADMIN), async (req, res) => {
   const { body, user } = req;
 
@@ -118,6 +132,11 @@ router.post("/create", auth(CUSTOMER, ADMIN), async (req, res) => {
   }
 });
 
+
+// @route   PUT testimonial/update
+// @desc    To update an existing testimonial
+//          body => { name, company, image, mobile, testimonial }
+// @access  ADMIN
 router.put("/update", auth(ADMIN), async (req, res) => {
   const { testimonialId, ...updates } = req.body;
 
@@ -167,6 +186,11 @@ router.put("/update", auth(ADMIN), async (req, res) => {
   }
 });
 
+
+// @route   DELETE testimonial/delete
+// @desc    To update an existing testimonial
+//          body => { testimonialId }
+// @access  ADMIN
 router.delete("/delete", auth(ADMIN), async (req, res) => {
   const { testimonialId } = req.body;
 

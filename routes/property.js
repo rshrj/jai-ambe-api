@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const { CUSTOMER, ADMIN } = require("../models/User/roles");
 const auth = require("../utils/auth/index");
 
+
 /*
   Property body
     {
@@ -33,12 +34,11 @@ const auth = require("../utils/auth/index");
     }
 */
 
+// @route   POST property/all
+// @desc    ADMIN =>  Can provide userId to fetch all properties of a user. body => { propertyId }
+//          CUSTOMER => Can fetch his/her all properties.
+// @access  CUSTOMER, ADMIN
 router.post("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
-  /*
-    ADMIN =>  Can provide userId to fetch all properties of a user.
-    CUSTOMER => Can fetch his/her all properties.
-  */
-
   const {
     user,
     body: { userId },
@@ -73,12 +73,13 @@ router.post("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
   }
 });
 
-router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
-  /*
-    ADMIN =>  Can provide propertyId to fetch all details of that property.
-    CUSTOMER => Can fetch all details of that property(Own).
-  */
 
+// @route   POST property/one
+// @desc    ADMIN =>  Can provide propertyId to fetch all details of that property.
+//          CUSTOMER => Can provide propertyId & fetch all details of that property(Own).
+//          body => { propertyId }
+// @access  CUSTOMER, ADMIN
+router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
     user,
     body: { propertyId },
@@ -125,6 +126,36 @@ router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
   }
 });
 
+
+/*
+ @route   POST property/create
+ @desc    Add new property
+          body => {
+                      lookingTo,
+                      propertyType,
+                      propertyCategory,
+                      location: { address, district, state, pincode },
+                      details: { bedrooms, bathrooms, balconies },
+                      area: { carpetArea, carpetAreaUnit, builtupArea, builtupAreaUnit },
+                      otherRooms,
+                      furnishing,
+                      coveredParking,
+                      openParking,
+                      totalFloor,
+                      floorNo,
+                      status,
+                      propertyYear,
+                      price,
+                      otherPricing: {
+                        maintenanceType,
+                        maintenance,
+                        expectedRent,
+                        bookingAmount,
+                        membershipCharge,
+                      },
+                   }
+ @access  CUSTOMER, ADMIN
+*/
 router.post("/create", auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
 
@@ -157,6 +188,36 @@ router.post("/create", auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
+/*
+ @route   PUT property/update
+ @desc    To update a existing property
+          body => {
+                      lookingTo,
+                      propertyType,
+                      propertyCategory,
+                      location: { address, district, state, pincode },
+                      details: { bedrooms, bathrooms, balconies },
+                      area: { carpetArea, carpetAreaUnit, builtupArea, builtupAreaUnit },
+                      otherRooms,
+                      furnishing,
+                      coveredParking,
+                      openParking,
+                      totalFloor,
+                      floorNo,
+                      status,
+                      propertyYear,
+                      price,
+                      otherPricing: {
+                        maintenanceType,
+                        maintenance,
+                        expectedRent,
+                        bookingAmount,
+                        membershipCharge,
+                      },
+                   }
+ @access  CUSTOMER, ADMIN
+*/
 router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const { propertyId, ...updates } = body;
@@ -218,6 +279,11 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
+// @route   DELETE property/delete
+// @desc    To delete a existing property
+//          body : { propertyId }
+// @access  CUSTOMER, ADMIN
 router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
   const {
     body: { propertyId },
@@ -267,17 +333,20 @@ router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
+// @route   PUT property/active
+// @desc    To change a existing property status to active or inactive
+//          body : { propertyId, active }
+// @access  CUSTOMER, ADMIN
 router.put("/active", auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const { propertyId, active } = body;
 
   if (![true, false].includes(active)) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Active attribute is missing in request body.",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Active attribute is missing in request body.",
+    });
   }
 
   if (!mongoose.isValidObjectId(propertyId)) {

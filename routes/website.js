@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const multer = require("multer");
+const auth = require("../utils/auth");
+const { ADMIN } = require("../models/User/roles");
 
 //multer settings
 const fileStorage = multer.diskStorage({
@@ -26,11 +28,12 @@ const upload = multer({
   limits: { fileSize: 5242880 }, // 5mb in bytes
 }).single("poster");
 
-/*
-  => /poster ->  Edit advertisement poster on home page (a simple image of fixed dimensions will be replaced)
-*/
 
-router.post("/poster", async (req, res) => {
+// @route   POST website/poster
+// @desc    Edit advertisement poster on home page (a simple image of fixed dimensions will be replaced)
+//          Note : name attribute should be "poster"
+// @access  ADMIN
+router.post("/poster", auth(ADMIN), async (req, res) => {
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       return res.status(500).json({
