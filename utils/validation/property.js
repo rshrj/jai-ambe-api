@@ -37,4 +37,5 @@ module.exports.checkProperty = Joi.object({
     bookingAmount: Joi.number(),
     membershipCharge: Joi.number(),
   }),
+  active: Joi.boolean(),
 });

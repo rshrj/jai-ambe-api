@@ -12,10 +12,12 @@ connectDB();
 
 const app = express();
 
+app.use(express.static("./public"));
+
 // Parse request bodies as JSON
 app.use(express.json());
-
 app.use(passport.initialize());
+
 require("./utils/auth/passport");
 
 // Route handlers

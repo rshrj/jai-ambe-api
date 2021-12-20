@@ -119,6 +119,10 @@ const PropertySchema = new mongoose.Schema({
     bookingAmount: Number,
     membershipCharge: Number,
   },
+  active: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 module.exports = mongoose.model("properties", PropertySchema);

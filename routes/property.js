@@ -46,6 +46,7 @@ router.post("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
 
   try {
     let properties = [];
+
     if (user.role == ADMIN) {
       if (!mongoose.isValidObjectId(userId)) {
         return res
@@ -250,6 +251,66 @@ router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
         success: true,
         payload: property,
         message: "Property has been deleted successfully.",
+      });
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to perform this action.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occured",
+    });
+  }
+});
+
+router.put("/active", auth(ADMIN, CUSTOMER), async (req, res) => {
+  const { body, user } = req;
+  const { propertyId, active } = body;
+
+  if (![true, false].includes(active)) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Active attribute is missing in request body.",
+      });
+  }
+
+  if (!mongoose.isValidObjectId(propertyId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid propertyId provided." });
+  }
+
+  try {
+    let property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property with the given propertyId was not found.",
+      });
+    }
+
+    if (
+      user.role == ADMIN ||
+      (user.role == CUSTOMER &&
+        property.userId.toString() == user._id.toString())
+    ) {
+      property = await Property.findByIdAndUpdate(
+        propertyId,
+        { active: active },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        success: true,
+        payload: property,
+        message: "Property status has been changed successfully.",
       });
     } else {
       return res.status(403).json({
