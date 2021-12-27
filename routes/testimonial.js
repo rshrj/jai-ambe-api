@@ -1,9 +1,11 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
+
 const Testimonial = require("../models/Testimonial");
 const { checkTestimonial } = require("../utils/validation/testimonial");
 const auth = require("../utils/auth");
 const { ADMIN, CUSTOMER } = require("../models/User/roles");
-const mongoose = require("mongoose");
+const checkError = require("../utils/error/checkError");
 
 /*
   PENDING WORK:
@@ -27,7 +29,7 @@ router.get("/all", auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });
@@ -49,7 +51,7 @@ router.get("/show", async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });
@@ -61,14 +63,13 @@ router.get("/show", async (req, res) => {
 // @access  Public
 router.post("/add", async (req, res) => {
   const { body } = req;
-  const { error, value } = checkTestimonial.validate({
+
+  const { error, value } = checkError(checkTestimonial, {
     ...body,
   });
 
   if (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: error.details[0].message });
+    return res.status(400).json({ success: false, errors: error });
   }
 
   try {
@@ -85,7 +86,7 @@ router.post("/add", async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });
@@ -98,14 +99,12 @@ router.post("/add", async (req, res) => {
 router.post("/create", auth(CUSTOMER, ADMIN), async (req, res) => {
   const { body, user } = req;
 
-  const { error, value } = checkTestimonial.validate({
+  const { error, value } = checkError(checkTestimonial, {
     ...body,
   });
 
   if (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: error.details[0].message });
+    return res.status(400).json({ success: false, errors: error });
   }
 
   try {
@@ -127,7 +126,7 @@ router.post("/create", auth(CUSTOMER, ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });
@@ -153,7 +152,7 @@ router.put("/update", auth(ADMIN), async (req, res) => {
   if (!mongoose.isValidObjectId(testimonialId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid testimonialId provided." });
+      .json({ success: false, errors: {testimonialId : 'Invalid testimonialId provided.'} });
   }
 
   try {
@@ -162,7 +161,9 @@ router.put("/update", auth(ADMIN), async (req, res) => {
     if (!testimonial) {
       return res.status(404).json({
         success: false,
-        message: "Testimonial with the given testimonialId was not found.",
+        errors: {
+          toasts: ["Testimonial with the given testimonialId was not found."],
+        },
       });
     }
 
@@ -181,7 +182,7 @@ router.put("/update", auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });
@@ -197,7 +198,7 @@ router.delete("/delete", auth(ADMIN), async (req, res) => {
   if (!mongoose.isValidObjectId(testimonialId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid testimonialId provided." });
+      .json({ success: false, errors: {testimonialId : 'Invalid testimonialId provided.'} });
   }
 
   try {
@@ -212,14 +213,16 @@ router.delete("/delete", auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        message: "Testimonial with the given testimonialId was not found.",
+        errors: {
+          toasts: ["Testimonial with the given testimonialId was not found."],
+        },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });

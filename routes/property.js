@@ -1,10 +1,11 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
+
 const Property = require("../models/Property/Property");
 const { checkProperty } = require("../utils/validation/property");
-const mongoose = require("mongoose");
 const { CUSTOMER, ADMIN } = require("../models/User/roles");
 const auth = require("../utils/auth/index");
-
+const checkError = require("../utils/error/checkError");
 
 /*
   Property body
@@ -51,7 +52,10 @@ router.post("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
       if (!mongoose.isValidObjectId(userId)) {
         return res
           .status(400)
-          .json({ success: false, message: "Invalid userId provided." });
+          .json({
+            success: false,
+            errors: { userId: "Invalid userId provided." },
+          });
       }
 
       properties = await Property.find({ userId: userId });
@@ -68,7 +72,7 @@ router.post("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
@@ -88,7 +92,7 @@ router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
   if (!mongoose.isValidObjectId(propertyId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid userId provided." });
+      .json({ success: false, errors: {propertyId : 'Invalid propertyId provided.'} });
   }
 
   try {
@@ -97,7 +101,7 @@ router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: "Property with the given propertyId was not found.",
+        errors: { toasts: ["Property with the given propertyId was not found."] },
       });
     }
 
@@ -114,14 +118,14 @@ router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to perform this action.",
+        errors: { toasts: ["You are not authorized to perform this action."] },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
@@ -159,14 +163,12 @@ router.post("/one", auth(CUSTOMER, ADMIN), async (req, res) => {
 router.post("/create", auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
 
-  const { error, value } = checkProperty.validate({
-    ...body,
+  const { error, value } = checkError(checkProperty, {
+    ...body
   });
 
   if (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: error.details[0].message });
+    return res.status(400).json({ success: false, errors: error });
   }
 
   try {
@@ -183,7 +185,7 @@ router.post("/create", auth(ADMIN, CUSTOMER), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
@@ -222,20 +224,18 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const { propertyId, ...updates } = body;
 
-  const { error, value } = checkProperty.validate({
+  const { error, value } = checkError(checkProperty, {
     ...updates,
   });
 
   if (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: error.details[0].message });
+    return res.status(400).json({ success: false, errors: error });
   }
 
   if (!mongoose.isValidObjectId(propertyId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid propertyId provided." });
+      .json({ success: false, errors: {propertyId : 'Invalid propertyId provided.'} });
   }
 
   try {
@@ -244,7 +244,7 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: "Property with the given propertyId was not found.",
+        errors: { toasts: ["Property with the given propertyId was not found."] },
       });
     }
 
@@ -267,14 +267,14 @@ router.put("/update", auth(ADMIN, CUSTOMER), async (req, res) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to perform this action.",
+        errors: { toasts: ["You are not authorized to perform this action."] },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
@@ -293,7 +293,7 @@ router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
   if (!mongoose.isValidObjectId(propertyId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid propertyId provided." });
+      .json({ success: false, errors: {propertyId : 'Invalid propertyId provided.'} });
   }
 
   try {
@@ -302,7 +302,7 @@ router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: "Property with the given propertyId was not found.",
+        errors: { toasts: ["Property with the given propertyId was not found."] },
       });
     }
 
@@ -321,14 +321,14 @@ router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to perform this action.",
+        errors: { toasts: ["You are not authorized to perform this action."] },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
@@ -345,14 +345,14 @@ router.put("/active", auth(ADMIN, CUSTOMER), async (req, res) => {
   if (![true, false].includes(active)) {
     return res.status(400).json({
       success: false,
-      message: "Active attribute is missing in request body.",
+      errors: { toasts: ["Active attribute is missing in request body."] }
     });
   }
 
   if (!mongoose.isValidObjectId(propertyId)) {
     return res
       .status(400)
-      .json({ success: false, message: "Invalid propertyId provided." });
+      .json({ success: false, errors: {propertyId : 'Invalid propertyId provided.'} });
   }
 
   try {
@@ -361,7 +361,7 @@ router.put("/active", auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: "Property with the given propertyId was not found.",
+        errors: { toasts: ["Property with the given propertyId was not found."] },
       });
     }
 
@@ -384,14 +384,14 @@ router.put("/active", auth(ADMIN, CUSTOMER), async (req, res) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to perform this action.",
+        errors: { toasts: ["You are not authorized to perform this action."] },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: "Server error occured",
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });

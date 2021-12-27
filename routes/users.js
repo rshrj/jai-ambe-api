@@ -2,12 +2,18 @@ const router = require('express').Router();
 const validator = require('validator');
 const { nanoid } = require('nanoid');
 const bcrypt = require('bcryptjs');
-const { checkSignup, checkUpdate } = require('../utils/validation/users');
+const mongoose = require('mongoose');
+
+const {
+  checkUserUpdate,
+  checkUser,
+} = require("../utils/validation/users");
 const sendMail = require('../utils/mailing/sendmail');
 const User = require('../models/User/User');
 const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
-const mongoose = require('mongoose');
+const checkError = require('../utils/error/checkError');
+
 
 // @route   GET users/all
 // @desc    To get all users data
@@ -25,10 +31,11 @@ router.get('/all', auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
+
 
 // @route   GET users/me
 // @desc    To get your own data.
@@ -40,7 +47,7 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
       return res.status(500).json({
         success: false,
         payload: req.user,
-        message: 'Unable to get user details'
+        errors: { toasts: ['Unable to get user details'] }
       });
     }
 
@@ -55,10 +62,11 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
     return res.status(500).json({
       success: false,
       payload: req.user,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
+
 
 // @route   POST users/signup
 // @desc    To signup a user.
@@ -72,12 +80,13 @@ router.post('/signup', async (req, res, next) => {
     password2
   } = req.body;
 
-  if (!checkSignup(email, { first, last }, password, password2)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid input'
-    });
-  }
+   const { error, value } = checkError(checkUser, { email, name: { first, last }, password, password2 });
+   
+   if (error) {
+     return res
+       .status(400)
+       .json({ success: false, errors: error });
+   }
 
   let normalEmail = validator.normalizeEmail(email);
 
@@ -132,10 +141,11 @@ router.post('/signup', async (req, res, next) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
+
 
 // @route   PUT users/update
 // @desc    To update a user profile.
@@ -151,11 +161,14 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
   } = req;
 
-  if (!checkUpdate(userId, email, first, last, password)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid input'
-    });
+  const { error, value } = checkError(checkUserUpdate, {
+    email,
+    name: { first, last },
+    password
+  });
+
+  if (error) {
+    return res.status(400).json({ success: false, errors: error });
   }
 
   try {
@@ -178,16 +191,17 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
     } else {
       return res
         .status(404)
-        .json({ success: false, message: 'User not found.' });
+        .json({ success: false, errors: { toasts: ['User not found.'] } });
     }
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
+
 
 // @route   DELETE users/
 // @desc    To delete a user.
@@ -199,7 +213,7 @@ router.delete('/', auth(ADMIN), async (req, res) => {
   if (!mongoose.isValidObjectId(userId)) {
     return res
       .status(400)
-      .json({ success: false, message: 'Invalid userId provided.' });
+      .json({ success: false, errors: {userId : 'Invalid userId provided.'} });
   }
 
   try {
@@ -214,17 +228,18 @@ router.delete('/', auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        message: 'User with the given userId was not found.'
+        errors: { toasts: ['User with the given userId was not found.'] }
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
+
 
 // @route   POST users/reset-password
 // @desc    To reset password a user's password
@@ -236,7 +251,7 @@ router.post('/reset-password', auth(ADMIN), async (req, res) => {
   if (!mongoose.isValidObjectId(userId)) {
     return res
       .status(400)
-      .json({ success: false, message: 'Invalid userId provided.' });
+      .json({ success: false, errors: { userId: "Invalid userId provided." } });
   }
 
   try {
@@ -255,14 +270,14 @@ router.post('/reset-password', auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        message: 'User with the given userId was not found.'
+        errors: { toasts: ["User with the given userId was not found."] },
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] }
     });
   }
 });
