@@ -1,27 +1,27 @@
-const validator = require('validator');
-const mongoose = require('mongoose');
+const Joi = require("joi");
 
-const checkSignup = (email, { first, last }, phone, password, password2) => {
-  return (
-    !validator.isEmpty(email) &&
-    validator.isEmail(email) &&
-    !validator.isEmpty(first) &&
-    !validator.isEmpty(last) &&
-    validator.isLength(password, { min: 8 }) &&
-    validator.isLength(password2, { min: 8 }) &&
-    validator.equals(password, password2)
-  );
-};
+const checkUser = Joi.object({
+  email: Joi.string().trim().email().required().label("Email"),
+  name: Joi.object({
+    first: Joi.string().trim().required().label("First Name"),
+    last: Joi.string().trim().required().label("Last Name"),
+  }),
+  password: Joi.string().trim().min(8).required().label("Password"),
+  password2: Joi.any()
+    .valid(Joi.ref("password"))
+    .required()
+    .label("Confirm Password"),
+});
 
-const checkUpdate = (userId, email, first, last, password) => {
-  return (
-    mongoose.isValidObjectId(userId) &&
-    !validator.isEmpty(email) &&
-    validator.isEmail(email) &&
-    !validator.isEmpty(first) &&
-    !validator.isEmpty(last) &&
-    validator.isLength(password, { min: 8 })
-  );
-};
+const checkUserUpdate = Joi.object({
+  email: Joi.string().trim().email().required().label("Email"),
+  name: Joi.object({
+    first: Joi.string().trim().required().label("First Name"),
+    last: Joi.string().trim().required().label("Last Name"),
+  }),
+  password: Joi.string().trim().min(8).required().label("Password"),
+});
 
-module.exports = { checkSignup, checkUpdate };
+
+
+module.exports = { checkUserUpdate, checkUser };
