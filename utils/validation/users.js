@@ -1,7 +1,7 @@
-const validator = require("validator");
-const mongoose = require("mongoose");
+const validator = require('validator');
+const mongoose = require('mongoose');
 
-const checkSignup = (email, { first, last }, password, password2) => {
+const checkSignup = (email, { first, last }, phone, password, password2) => {
   return (
     !validator.isEmpty(email) &&
     validator.isEmail(email) &&

@@ -35,7 +35,7 @@ router.get('/all', auth(ADMIN), async (req, res) => {
 // @access  ADMIN, CUSTOMER
 router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id, 'name email role');
+    const user = await User.findById(req.user._id, 'name email phone role');
     if (!user) {
       return res.status(500).json({
         success: false,
@@ -68,11 +68,12 @@ router.post('/signup', async (req, res, next) => {
   const {
     email,
     name: { first, last },
+    phone,
     password,
     password2
   } = req.body;
 
-  if (!checkSignup(email, { first, last }, password, password2)) {
+  if (!checkSignup(email, { first, last }, phone, password, password2)) {
     return res.status(400).json({
       success: false,
       message: 'Invalid input'
@@ -81,7 +82,7 @@ router.post('/signup', async (req, res, next) => {
 
   let normalEmail = validator.normalizeEmail(email);
 
-  let user = await User.findOne({ email: normalEmail });
+  let user = await User.findOne({ $or: [{ email: normalEmail }, { phone }] });
 
   if (user) {
     return res.status(400).json({
@@ -103,6 +104,7 @@ router.post('/signup', async (req, res, next) => {
     email: normalEmail,
     password: hash,
     role: CUSTOMER,
+    phone,
     verificationToken
   });
 

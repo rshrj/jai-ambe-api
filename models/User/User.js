@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
-const { CUSTOMER, ADMIN } = require("./roles");
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const { CUSTOMER, ADMIN } = require('./roles');
 
 //below schema should also contain mobile no.
 
@@ -9,36 +9,41 @@ const UserSchema = new mongoose.Schema({
     first: {
       type: String,
       trim: true,
-      required: true,
+      required: true
     },
     last: {
       type: String,
       trim: true,
-      required: true,
-    },
+      required: true
+    }
   },
   email: {
     type: String,
     required: true,
     lowercase: true,
-    unique: true,
+    unique: true
+  },
+  phone: {
+    type: String,
+    required: true,
+    unique: true
   },
   password: {
     type: String,
-    required: true,
+    required: true
   },
   role: {
     type: String,
     enum: [CUSTOMER, ADMIN],
-    required: true,
+    required: true
   },
   verificationToken: {
-    type: String,
+    type: String
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
 UserSchema.methods.generateAuthToken = function () {
@@ -49,4 +54,4 @@ UserSchema.methods.generateAuthToken = function () {
   return token;
 };
 
-module.exports = mongoose.model("users", UserSchema);
+module.exports = mongoose.model('users', UserSchema);
