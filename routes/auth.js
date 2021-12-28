@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const { checkLogin } = require('../utils/validation/auth');
 const User = require('../models/User/User');
+const checkError = require("../utils/error/checkError");
 
 // @route   POST auth/login
 // @desc    For login
@@ -11,12 +12,14 @@ const User = require('../models/User/User');
 router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!checkLogin(email, password)) {
-    return res.status(400).json({
-      success: false,
-      message: { email: 'Invalid input' }
-    });
-  }
+   const { error, value } = checkError(checkLogin, {
+     email,
+     password,
+   });
+
+   if (error) {
+     return res.status(400).json({ success: false, errors: error });
+   }
 
   passport.authenticate(
     'local',
@@ -25,7 +28,7 @@ router.post('/login', async (req, res, next) => {
       if (err) {
         return res.status(500).json({
           success: false,
-          message: { email: 'Server error occured' }
+          errors: { toasts: ["Server error occurred"] },
         });
       }
       if (!user) {
@@ -38,7 +41,7 @@ router.post('/login', async (req, res, next) => {
         if (err) {
           return res.status(500).json({
             success: false,
-            message: { email: 'Server error occured' }
+            errors: { toasts: ["Server error occurred"] },
           });
         }
 
@@ -68,7 +71,7 @@ router.get('/verify/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid verification token'
+        errors: { toasts: ['Invalid verification token'] }
       });
     }
 
@@ -84,7 +87,7 @@ router.get('/verify/:token', async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      message: 'Server error occured'
+      errors: { toasts: ["Server error occurred"] },
     });
   }
 });

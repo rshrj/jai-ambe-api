@@ -44,12 +44,12 @@ router.post("/poster", auth(ADMIN), async (req, res) => {
       // An unknown error occurred when uploading.
       return res.status(500).json({
         success: false,
-        message: "Server error.",
+        errors: { toasts: ["Server error occurred"] },
       });
     } else if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Please upload an image.",
+        errors: { toasts: ["Please upload an image."] }
       });
     } else {
       return res.json({

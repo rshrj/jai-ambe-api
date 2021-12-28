@@ -1,7 +1,6 @@
-const validator = require('validator');
+const Joi = require("joi");
 
-module.exports.checkLogin = (email, password) => {
-  return (
-    validator.isEmail(email + '') && validator.isLength(password, { min: 8 })
-  );
-};
+module.exports.checkLogin = Joi.object({
+  email: Joi.string().trim().email().required().label("Email"),
+  password: Joi.string().trim().min(8).required().label("Password"),
+});
