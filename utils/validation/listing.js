@@ -1,0 +1,164 @@
+const Joi = require('joi');
+const enums = require('../../models/Listing/enums');
+
+const RentLeaseValidation = Joi.object({
+  location: Joi.string().required(),
+  landmark: Joi.string().required(),
+  apartmentType: Joi.string()
+    .valid(...enums.apartmentType)
+    .required(),
+  rent: Joi.string().required(),
+  electricityIncluded: Joi.boolean(),
+  priceNegotiable: Joi.boolean(),
+  deposit: Joi.string().required(),
+  numBathrooms: Joi.string().required(),
+  numBalconies: Joi.string().required(),
+  carpetArea: Joi.string().required(),
+  builtUpArea: Joi.string(),
+  superBuiltUpArea: Joi.string(),
+  otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
+  furnishing: Joi.string()
+    .valid(...enums.furnishing)
+    .required(),
+  coveredParking: Joi.number(),
+  openParking: Joi.number(),
+  totalFloors: Joi.string().required(),
+  propertyOnFloor: Joi.string().required(),
+  ageOfProperty: Joi.string()
+    .valid(...enums.ageOfProperty)
+    .required(),
+  availableFrom: Joi.string().required(),
+  willingToRentOutTo: Joi.array()
+    .items(
+      Joi.string()
+        .valid(...enums.willingToRentOutTo)
+        .required()
+    )
+    .min(1)
+    .required(),
+  pictures: Joi.array().items(Joi.string().required()).min(1).required(),
+  featuredPicture: Joi.string(),
+  videoLink: Joi.string(),
+});
+
+
+
+const SellApartmentValidation = Joi.object({
+  location: Joi.string().required(),
+  landmark: Joi.string().required(),
+  apartmentType: Joi.string()
+    .valid(...enums.apartmentType)
+    .required(),
+  price: Joi.string().required(),
+  pricePerSqFt: Joi.string().required(),
+  allInclusivePrice: Joi.boolean(),
+  taxAndGovtChargesExcluded: Joi.boolean(),
+  priceNegotiable: Joi.boolean(),
+  numBathrooms: Joi.string().required(),
+  numBalconies: Joi.string().required(),
+  carpetArea: Joi.string().required(),
+  builtUpArea: Joi.string(),
+  superBuiltUpArea: Joi.string(),
+  otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
+  furnishing: Joi.string()
+    .valid(...enums.furnishing)
+    .required(),
+  coveredParking: Joi.number(),
+  openParking: Joi.number(),
+  totalFloors: Joi.string().required(),
+  propertyOnFloor: Joi.string().required(),
+  ageOfProperty: Joi.string()
+    .valid(...enums.ageOfProperty)
+    .required(),
+  availabilityStatus: Joi.string()
+    .valid(...enums.availabilityStatus)
+    .required(),
+  ownershipType: Joi.string()
+    .valid(...enums.ownershipType)
+    .required(),
+  usp: Joi.string(),
+  pictures: Joi.array().items(Joi.string().required()).min(1).required(),
+  featuredPicture: Joi.string(),
+  videoLink: Joi.string(),
+});
+
+
+const SellProjectValidation = Joi.object({
+  location: Joi.string().required(),
+  landmark: Joi.string().required(),
+  apartmentTypes: Joi.array().items(
+    Joi.string()
+      .valid(...enums.apartmentType)
+      .required()
+  ),
+  units: Joi.array().items(
+    Joi.object({
+      apartmentType: Joi.string()
+        .valid(...enums.apartmentType)
+        .required(),
+      price: Joi.string().required(),
+      pricePerSqFt: Joi.string().required(),
+      allInclusivePrice: Joi.boolean(),
+      taxAndGovtChargesExcluded: Joi.boolean(),
+      priceNegotiable: Joi.boolean(),
+      numBathrooms: Joi.string().required(),
+      numBalconies: Joi.string().required(),
+      carpetArea: Joi.string().required(),
+      builtUpArea: Joi.string(),
+      superBuiltUpArea: Joi.string(),
+      otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
+      furnishing: Joi.string()
+        .valid(...enums.furnishing)
+        .required(),
+    })
+  ),
+  coveredParking: Joi.number(),
+  openParking: Joi.number(),
+  totalFloors: Joi.string().required(),
+  ageOfProperty: Joi.string()
+    .valid(...enums.ageOfProperty)
+    .required(),
+  availabilityStatus: Joi.string()
+    .valid(...enums.availabilityStatus)
+    .required(),
+  //   possessionBy: Joi.string().required(),
+  ownershipType: Joi.string()
+    .valid(...enums.ownershipType)
+    .required(),
+  usp: Joi.string(),
+  pictures: Joi.array().items(Joi.string().required()).min(1).required(),
+  featuredPicture: Joi.string(),
+  brochureLink: Joi.string(),
+  videoLink: Joi.string(),
+});
+
+// const keys = Object.keys({
+//   apartmentType: Joi.string().valid(...enums.apartmentType).required(),
+//   price: Joi.string().required(),
+//   pricePerSqFt: Joi.string().required(),
+//   allInclusivePrice: Joi.boolean(),
+//   taxAndGovtChargesExcluded: Joi.boolean(),
+//   priceNegotiable: Joi.boolean(),
+//   numBathrooms: Joi.string().required(),
+//   numBalconies: Joi.string().required(),
+//   carpetArea: Joi.string().required(),
+//   builtUpArea: Joi.string(),
+//   superBuiltUpArea: Joi.string(),
+//   otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
+//   furnishing: Joi.string().valid(...enums.furnishing).required(),
+// });
+
+// console.log(keys);
+
+// console.log(
+//   keys.reduce((p, k) => {
+//     p[k] = k;
+//     return p;
+//   }, {})
+// );
+
+module.exports = {
+  RentLeaseValidation,
+  SellApartmentValidation,
+  SellProjectValidation,
+};

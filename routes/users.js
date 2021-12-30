@@ -11,6 +11,7 @@ const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const checkError = require('../utils/error/checkError');
 
+
 // @route   GET users/all
 // @desc    To get all users data
 // @access  ADMIN
@@ -31,6 +32,7 @@ router.get('/all', auth(ADMIN), async (req, res) => {
     });
   }
 });
+
 
 // @route   GET users/me
 // @desc    To get your own data.
@@ -62,9 +64,10 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
   }
 });
 
+
 // @route   POST users/signup
 // @desc    To signup a user.
-//          body => { email, name: { first, last }, password, password2 }
+//          body => { email, name: { first, last }, password, password2, phone }
 // @access  PUBLIC
 router.post('/signup', async (req, res, next) => {
   const {
@@ -79,7 +82,8 @@ router.post('/signup', async (req, res, next) => {
     email,
     name: { first, last },
     password,
-    password2
+    password2,
+    phone,
   });
 
   if (error) {
@@ -147,7 +151,7 @@ router.post('/signup', async (req, res, next) => {
 
 // @route   PUT users/update
 // @desc    To update a user profile.
-//          body => { email, name: { first, last }, password }
+//          body => { email, name: { first, last }, password, phone }
 // @access  ADMIN, CUSTOMER
 router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
   let {
@@ -155,14 +159,16 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
     body: {
       email,
       name: { first, last },
-      password
-    }
+      password,
+      phone,
+    },
   } = req;
 
   const { error, value } = checkError(checkUserUpdate, {
     email,
     name: { first, last },
-    password
+    password,
+    phone,
   });
 
   if (error) {
@@ -175,7 +181,7 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { email, password, name: { first, last } },
+      { email, password, name: { first, last }, phone },
       { new: true }
     );
 

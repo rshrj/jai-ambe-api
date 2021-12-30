@@ -11,6 +11,10 @@ const checkUser = Joi.object({
     .valid(Joi.ref("password"))
     .required()
     .label("Confirm Password"),
+  phone: Joi.string()
+    .pattern(/^[6-9]\d{9}$/)
+    .required()
+    .label("Mobile Number"),
 });
 
 const checkUserUpdate = Joi.object({
@@ -20,8 +24,10 @@ const checkUserUpdate = Joi.object({
     last: Joi.string().trim().required().label("Last Name"),
   }),
   password: Joi.string().trim().min(8).required().label("Password"),
+  phone: Joi.string()
+    .pattern(/^[6-9]\d{9}$/)
+    .required()
+    .label("Mobile Number"),
 });
-
-
 
 module.exports = { checkUserUpdate, checkUser };
