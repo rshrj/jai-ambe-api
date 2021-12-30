@@ -37,7 +37,7 @@ app.use(cors());
 // Route handlers
 app.use('/users', require('./routes/users'));
 app.use('/auth', require('./routes/auth'));
-app.use('/property', require('./routes/property'));
+app.use('/listings', require('./routes/listing'));
 app.use('/testimonial', require('./routes/testimonial'));
 app.use('/website', require('./routes/website'));
 
