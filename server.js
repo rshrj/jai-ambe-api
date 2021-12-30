@@ -34,7 +34,6 @@ app.use(cors());
 //     return res.send('Done')
 // }));
 
-
 // Route handlers
 app.use('/users', require('./routes/users'));
 app.use('/auth', require('./routes/auth'));
@@ -42,8 +41,16 @@ app.use('/property', require('./routes/property'));
 app.use('/testimonial', require('./routes/testimonial'));
 app.use('/website', require('./routes/website'));
 
+app.use('*', (req, res, next) => {
+  return res.status(404).json({
+    success: false,
+    message: 'Page not found',
+    toasts: ['Page not found']
+  });
+});
+
 // For Error Handling
-// app.use((err, req, res, next)=>{ 
+// app.use((err, req, res, next)=>{
 //   console.log(err);
 //   return res.send('Something went wrong.')
 // });

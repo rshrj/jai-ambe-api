@@ -145,6 +145,12 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
+router.get('/test', (req, res) => {
+  return res.json({
+    hello: 'test!'
+  });
+});
+
 // @route   PUT users/update
 // @desc    To update a user profile.
 //          body => { email, name: { first, last }, password }
