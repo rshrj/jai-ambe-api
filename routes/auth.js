@@ -11,7 +11,8 @@ const checkError = require("../utils/error/checkError");
 // @access  Public
 router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log(email);
+  console.log(password);
    const { error, value } = checkError(checkLogin, {
      email,
      password,
