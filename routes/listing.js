@@ -15,30 +15,22 @@ const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
 
 
-// @route   POST listings/all
-// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
+// @route   GET listings/all
+// @desc    ADMIN =>  Can  fetch all listings of a user
 //          CUSTOMER => Can fetch his/her all listings.
 // @access  CUSTOMER, ADMIN
-router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
-    user,
-    body: { userId },
+    user
   } = req;
 
   try {
     let listings = [];
 
     if (user.role == ADMIN) {
-      if (!mongoose.isValidObjectId(userId)) {
-        return res.status(400).json({
-          success: false,
-          errors: { userId: 'Invalid userId provided.' },
-        });
-      }
-
-      listings = await Listing.find({ createdBy: userId });
+      listings = await Listing.find().populate('createdBy', 'name');
     } else {
-      listings = await Listing.find({ createdBy: user._id });
+      listings = await Listing.find({ createdBy: user._id }).populate('createdBy','name');
     }
 
     return res.status(200).json({
@@ -46,6 +38,7 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
       payload: listings,
       message: 'Properties data fetched successfully.',
     });
+
   } catch (err) {
     console.log(err);
     return res.status(500).json({
@@ -56,15 +49,14 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
 });
 
 
-// @route   POST listings/one
+// @route   POST listings/:listingId
 // @desc    ADMIN =>  Can provide listingId to fetch all details of that property.
 //          CUSTOMER => Can provide listingId & fetch all details of that property(Own).
-//          body => { listingId }
 // @access  CUSTOMER, ADMIN
-router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get('/:listingId', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
     user,
-    body: { listingId },
+    params: { listingId },
   } = req;
 
   if (!mongoose.isValidObjectId(listingId)) {
@@ -112,6 +104,38 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
 });
 
 
+// @route   POST listings/user
+// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }     
+// @access  ADMIN
+router.post('/user', auth(ADMIN), async (req, res) => {
+  const { userId  } = req.body;
+
+  try {
+
+      if (!mongoose.isValidObjectId(userId)) {
+        return res.status(400).json({
+          success: false,
+          errors: { userId: 'Invalid userId provided.' },
+        });
+      }
+
+      let listings = await Listing.find({ createdBy: userId });
+  
+    return res.status(200).json({
+      success: true,
+      payload: listings,
+      message: 'Properties data fetched successfully.',
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errors: { toasts: ['Server error occurred'] },
+    });
+  }
+});
+
+
 /*
  @route   POST listings/add/rentlease
  @desc    Add new rentlease property
@@ -120,6 +144,7 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
 router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentType,
@@ -148,6 +173,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(RentLeaseValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -183,6 +209,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: RENT_LEASE,
+      name:name,
       rentlease: {
         location: location,
         landmark: landmark,
@@ -239,6 +266,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentType,
@@ -269,6 +297,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(SellApartmentValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -306,6 +335,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: SELL_APARTMENT,
+      name:name,
       sellapartment: {
         location: location,
         landmark: landmark,
@@ -364,6 +394,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentTypes,
@@ -383,6 +414,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(SellProjectValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentTypes: apartmentTypes,
@@ -409,6 +441,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: SELL_PROJECT,
+      name:name,
       sellproject: {
         location: location,
         landmark: landmark,
