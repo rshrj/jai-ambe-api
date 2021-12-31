@@ -3,26 +3,25 @@ const mongoose = require('mongoose');
 
 const Listing = require('../models/Listing');
 const {
-  listingTypes: { RENT_LEASE, SELL_APARTMENT, SELL_PROJECT },
+  listingTypes: { RENT_LEASE, SELL_APARTMENT, SELL_PROJECT }
 } = require('../models/Listing/enums');
 const {
   RentLeaseValidation,
   SellApartmentValidation,
-  SellProjectValidation,
+  SellProjectValidation
 } = require('../utils/validation/listing');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
 
-
-// @route   POST listings/all
+// @route   GET listings/all
 // @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
 //          CUSTOMER => Can fetch his/her all listings.
 // @access  CUSTOMER, ADMIN
-router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
     user,
-    body: { userId },
+    body: { userId }
   } = req;
 
   try {
@@ -32,7 +31,7 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
       if (!mongoose.isValidObjectId(userId)) {
         return res.status(400).json({
           success: false,
-          errors: { userId: 'Invalid userId provided.' },
+          errors: { userId: 'Invalid userId provided.' }
         });
       }
 
@@ -44,17 +43,16 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
     return res.status(200).json({
       success: true,
       payload: listings,
-      message: 'Properties data fetched successfully.',
+      message: 'Properties data fetched successfully.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 // @route   POST listings/one
 // @desc    ADMIN =>  Can provide listingId to fetch all details of that property.
@@ -64,13 +62,13 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
 router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
     user,
-    body: { listingId },
+    body: { listingId }
   } = req;
 
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
-      errors: { listingId: 'Invalid listingId provided.' },
+      errors: { listingId: 'Invalid listingId provided.' }
     });
   }
 
@@ -80,9 +78,7 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        errors: {
-          toasts: ['Listing with the given listingId was not found.'],
-        },
+        toasts: ['Listing with the given listingId was not found.']
       });
     }
 
@@ -94,23 +90,22 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Listing details found successfully.',
+        message: 'Listing details found successfully.'
       });
     } else {
       return res.status(403).json({
         success: false,
-        errors: { toasts: ['You are not authorized to perform this action.'] },
+        toasts: ['You are not authorized to perform this action.']
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 /*
  @route   POST listings/add/rentlease
@@ -143,7 +138,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo,
     pictures,
     featuredPicture,
-    videoLink,
+    videoLink
   } = body;
 
   //Validation
@@ -171,7 +166,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo: willingToRentOutTo,
     pictures: pictures,
     featuredPicture: featuredPicture,
-    videoLink: videoLink,
+    videoLink: videoLink
   });
 
   if (error) {
@@ -207,8 +202,8 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
         willingToRentOutTo: willingToRentOutTo,
         pictures: pictures,
         featuredPicture: featuredPicture,
-        videoLink: videoLink,
-      },
+        videoLink: videoLink
+      }
     });
 
     await listing.save();
@@ -216,20 +211,18 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Rent/Lease Property added successfully.',
+      message: 'Rent/Lease Property added successfully.'
     });
   } catch (err) {
-    
-    if (err instanceof mongoose.Error.ValidationError){
-        console.log(err.message.split(':')[2]);
+    if (err instanceof mongoose.Error.ValidationError) {
+      console.log(err.message.split(':')[2]);
     }
-      return res.status(500).json({
-        success: false,
-        errors: { toasts: ['Server error occurred'] },
-      });
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred']
+    });
   }
 });
-
 
 /*
  @route   POST listings/add/sellapartment
@@ -264,7 +257,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     usp,
     pictures,
     featuredPicture,
-    videoLink,
+    videoLink
   } = body;
 
   //Validation
@@ -294,7 +287,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     usp: usp,
     pictures: pictures,
     featuredPicture: featuredPicture,
-    videoLink: videoLink,
+    videoLink: videoLink
   });
 
   if (error) {
@@ -332,8 +325,8 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
         usp: usp,
         pictures: pictures,
         featuredPicture: featuredPicture,
-        videoLink: videoLink,
-      },
+        videoLink: videoLink
+      }
     });
 
     await listing.save();
@@ -341,7 +334,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Sell Apartment Property added successfully.',
+      message: 'Sell Apartment Property added successfully.'
     });
   } catch (err) {
     console.log(err);
@@ -350,11 +343,10 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 /*
  @route   POST listings/add/sellproject
@@ -378,7 +370,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures,
     featuredPicture,
     brochureLink,
-    videoLink,
+    videoLink
   } = body;
 
   //Validation
@@ -397,7 +389,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     brochureLink: brochureLink,
-    videoLink: videoLink,
+    videoLink: videoLink
   });
 
   if (error) {
@@ -424,8 +416,8 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
         pictures: pictures,
         featuredPicture: featuredPicture,
         brochureLink: brochureLink,
-        videoLink: videoLink,
-      },
+        videoLink: videoLink
+      }
     });
 
     await listing.save();
@@ -433,7 +425,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Sell Project Property added successfully.',
+      message: 'Sell Project Property added successfully.'
     });
   } catch (err) {
     console.log(err);
@@ -442,11 +434,10 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 // @route   DELETE listings/delete
 // @desc    To delete a existing property
@@ -455,13 +446,13 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
   const {
     body: { listingId },
-    user,
+    user
   } = req;
 
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
-      errors: { listingId: 'Invalid listingId provided.' },
+      errors: { listingId: 'Invalid listingId provided.' }
     });
   }
 
@@ -471,9 +462,7 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        errors: {
-          toasts: ['Listing with the given listingId was not found.'],
-        },
+        toasts: ['Listing with the given listingId was not found.']
       });
     }
 
@@ -487,22 +476,21 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Listing has been deleted successfully.',
+        message: 'Listing has been deleted successfully.'
       });
     } else {
       return res.status(403).json({
         success: false,
-        errors: { toasts: ['You are not authorized to perform this action.'] },
+        toasts: ['You are not authorized to perform this action.']
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 module.exports = router;

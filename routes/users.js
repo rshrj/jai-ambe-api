@@ -138,7 +138,7 @@ router.post('/signup', async (req, res, next) => {
       success: true,
       payload: token,
       message:
-        "Successfully created an author's account. Please verify your email"
+        "Successfully created an account. Please verify your email"
     });
   } catch (err) {
     console.log(err);

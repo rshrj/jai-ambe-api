@@ -14,8 +14,8 @@ const RentLeaseValidation = Joi.object({
   numBathrooms: Joi.string().required(),
   numBalconies: Joi.string().required(),
   carpetArea: Joi.string().required(),
-  builtUpArea: Joi.string(),
-  superBuiltUpArea: Joi.string(),
+  builtUpArea: Joi.string().allow('').optional(),
+  superBuiltUpArea: Joi.string().allow('').optional(),
   otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
   furnishing: Joi.string()
     .valid(...enums.furnishing)
@@ -38,10 +38,8 @@ const RentLeaseValidation = Joi.object({
     .required(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string(),
+  videoLink: Joi.string()
 });
-
-
 
 const SellApartmentValidation = Joi.object({
   location: Joi.string().required(),
@@ -79,9 +77,8 @@ const SellApartmentValidation = Joi.object({
   usp: Joi.string(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string(),
+  videoLink: Joi.string()
 });
-
 
 const SellProjectValidation = Joi.object({
   location: Joi.string().required(),
@@ -109,7 +106,7 @@ const SellProjectValidation = Joi.object({
       otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
       furnishing: Joi.string()
         .valid(...enums.furnishing)
-        .required(),
+        .required()
     })
   ),
   coveredParking: Joi.number(),
@@ -129,7 +126,7 @@ const SellProjectValidation = Joi.object({
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
   brochureLink: Joi.string(),
-  videoLink: Joi.string(),
+  videoLink: Joi.string()
 });
 
 // const keys = Object.keys({
@@ -160,5 +157,5 @@ const SellProjectValidation = Joi.object({
 module.exports = {
   RentLeaseValidation,
   SellApartmentValidation,
-  SellProjectValidation,
+  SellProjectValidation
 };

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const { checkLogin } = require('../utils/validation/auth');
 const User = require('../models/User/User');
-const checkError = require("../utils/error/checkError");
+const checkError = require('../utils/error/checkError');
 
 // @route   POST auth/login
 // @desc    For login
@@ -13,14 +13,14 @@ router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
   console.log(email);
   console.log(password);
-   const { error, value } = checkError(checkLogin, {
-     email,
-     password,
-   });
+  const { error, value } = checkError(checkLogin, {
+    email,
+    password
+  });
 
-   if (error) {
-     return res.status(400).json({ success: false, errors: error });
-   }
+  if (error) {
+    return res.status(400).json({ success: false, errors: error });
+  }
 
   passport.authenticate(
     'local',
@@ -29,20 +29,21 @@ router.post('/login', async (req, res, next) => {
       if (err) {
         return res.status(500).json({
           success: false,
-          errors: { toasts: ["Server error occurred"] },
+          errors: { toasts: ['Server error occurred'] }
         });
       }
       if (!user) {
         return res.status(400).json({
           success: false,
-          message: info
+          message: 'Unable to login',
+          errors: info
         });
       }
       req.login(user, { session: false }, (err) => {
         if (err) {
           return res.status(500).json({
             success: false,
-            errors: { toasts: ["Server error occurred"] },
+            errors: { toasts: ['Server error occurred'] }
           });
         }
 
@@ -88,7 +89,7 @@ router.get('/verify/:token', async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ["Server error occurred"] },
+      errors: { toasts: ['Server error occurred'] }
     });
   }
 });

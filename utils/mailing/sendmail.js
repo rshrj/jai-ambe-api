@@ -7,7 +7,7 @@ const ejs = require('ejs');
 const transporter = nodemailer.createTransport({
   host: process.env.SMTPHOST,
   port: process.env.SMTPPORT || 587,
-  secure: false,
+  secure: true,
   auth: {
     user: process.env.SMTPUSER,
     pass: process.env.SMTPPASS

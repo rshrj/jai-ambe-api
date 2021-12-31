@@ -7,7 +7,8 @@ module.exports =
       if (err || !user) {
         return res.status(401).json({
           success: false,
-          message: info
+          message: 'Unable to login',
+          errors: info
         });
       }
 
@@ -15,7 +16,7 @@ module.exports =
         if (err) {
           return res.status(500).json({
             success: false,
-            message: 'Server error occured'
+            toasts: ['Server error occured']
           });
         }
 
@@ -25,7 +26,7 @@ module.exports =
         if (!hasRole) {
           return res.status(401).json({
             success: false,
-            message: 'Unauthorized to access this endpoint'
+            toasts: ['Unauthorized to access this endpoint']
           });
         } else {
           return next();
