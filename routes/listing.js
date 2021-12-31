@@ -15,20 +15,48 @@ const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
 
 
-// @route   POST listings/all
-// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
+// @route   GET listings/all
+// @desc    ADMIN =>  Can  fetch all listings of a user
 //          CUSTOMER => Can fetch his/her all listings.
 // @access  CUSTOMER, ADMIN
-router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
-    user,
-    body: { userId },
+    user
   } = req;
 
   try {
     let listings = [];
 
     if (user.role == ADMIN) {
+      listings = await Listing.find().populate('createdBy', 'name');
+    } else {
+      listings = await Listing.find({ createdBy: user._id }).populate('createdBy','name');
+    }
+
+    return res.status(200).json({
+      success: true,
+      payload: listings,
+      message: 'Properties data fetched successfully.',
+    });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errors: { toasts: ['Server error occurred'] },
+    });
+  }
+});
+
+
+// @route   POST listings/user
+// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }     
+// @access  ADMIN
+router.post('/user', auth(ADMIN), async (req, res) => {
+  const { userId  } = req.body;
+
+  try {
+
       if (!mongoose.isValidObjectId(userId)) {
         return res.status(400).json({
           success: false,
@@ -36,11 +64,8 @@ router.post('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
         });
       }
 
-      listings = await Listing.find({ createdBy: userId });
-    } else {
-      listings = await Listing.find({ createdBy: user._id });
-    }
-
+      let listings = await Listing.find({ createdBy: userId });
+  
     return res.status(200).json({
       success: true,
       payload: listings,

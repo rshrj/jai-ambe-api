@@ -86,7 +86,7 @@ const SellApartmentValidation = Joi.object({
 
 
 const SellProjectValidation = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string().required().label('Project Name'),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentTypes: Joi.array().items(
