@@ -49,47 +49,14 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
 });
 
 
-// @route   POST listings/user
-// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }     
-// @access  ADMIN
-router.post('/user', auth(ADMIN), async (req, res) => {
-  const { userId  } = req.body;
-
-  try {
-
-      if (!mongoose.isValidObjectId(userId)) {
-        return res.status(400).json({
-          success: false,
-          errors: { userId: 'Invalid userId provided.' },
-        });
-      }
-
-      let listings = await Listing.find({ createdBy: userId });
-  
-    return res.status(200).json({
-      success: true,
-      payload: listings,
-      message: 'Properties data fetched successfully.',
-    });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      success: false,
-      errors: { toasts: ['Server error occurred'] },
-    });
-  }
-});
-
-
-// @route   POST listings/one
+// @route   POST listings/:listingId
 // @desc    ADMIN =>  Can provide listingId to fetch all details of that property.
 //          CUSTOMER => Can provide listingId & fetch all details of that property(Own).
-//          body => { listingId }
 // @access  CUSTOMER, ADMIN
-router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get('/:listingId', auth(CUSTOMER, ADMIN), async (req, res) => {
   const {
     user,
-    body: { listingId },
+    params: { listingId },
   } = req;
 
   if (!mongoose.isValidObjectId(listingId)) {
@@ -127,6 +94,38 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
         errors: { toasts: ['You are not authorized to perform this action.'] },
       });
     }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errors: { toasts: ['Server error occurred'] },
+    });
+  }
+});
+
+
+// @route   POST listings/user
+// @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }     
+// @access  ADMIN
+router.post('/user', auth(ADMIN), async (req, res) => {
+  const { userId  } = req.body;
+
+  try {
+
+      if (!mongoose.isValidObjectId(userId)) {
+        return res.status(400).json({
+          success: false,
+          errors: { userId: 'Invalid userId provided.' },
+        });
+      }
+
+      let listings = await Listing.find({ createdBy: userId });
+  
+    return res.status(200).json({
+      success: true,
+      payload: listings,
+      message: 'Properties data fetched successfully.',
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
