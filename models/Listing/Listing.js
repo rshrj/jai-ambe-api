@@ -18,6 +18,12 @@ const ListingSchema = new mongoose.Schema({
     enum: [RENT_LEASE, SELL_APARTMENT, SELL_PROJECT],
     required: true,
   },
+  name: {
+    type: String,
+    required: function () {
+      return this.listingType == SELL_PROJECT;
+    }
+  },
   rentlease: {
     type: RentLeaseSchema,
     required: function () {

@@ -120,6 +120,7 @@ router.post('/one', auth(CUSTOMER, ADMIN), async (req, res) => {
 router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentType,
@@ -148,6 +149,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(RentLeaseValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -183,6 +185,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: RENT_LEASE,
+      name:name,
       rentlease: {
         location: location,
         landmark: landmark,
@@ -239,6 +242,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentType,
@@ -269,6 +273,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(SellApartmentValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -306,6 +311,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: SELL_APARTMENT,
+      name:name,
       sellapartment: {
         location: location,
         landmark: landmark,
@@ -364,6 +370,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
+    name,
     location,
     landmark,
     apartmentTypes,
@@ -383,6 +390,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   //Validation
   const { error, value } = checkError(SellProjectValidation, {
+    name:name,
     location: location,
     landmark: landmark,
     apartmentTypes: apartmentTypes,
@@ -409,6 +417,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
       state: 'Submitted',
       createdBy: user._id,
       listingType: SELL_PROJECT,
+      name:name,
       sellproject: {
         location: location,
         landmark: landmark,
