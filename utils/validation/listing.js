@@ -135,8 +135,32 @@ const SellProjectValidation = Joi.object({
   videoLink: Joi.string(),
 });
 
+const FuzzySearchValidation = Joi.object({
+  query: Joi.string().allow(''),
+  type: Joi.array().items(
+    Joi.string()
+      .valid(...Object.values(enums.listingTypes))
+      .required()
+  ).min(1).required()
+});
+
+const ParticularListingValidation = Joi.object({
+  size: Joi.number(),
+  page: Joi.number(),
+  type: Joi.array()
+    .items(
+      Joi.string()
+        .valid(...Object.values(enums.listingTypes))
+        .required()
+    )
+    .min(1)
+    .required(),
+});
+
 module.exports = {
   RentLeaseValidation,
   SellApartmentValidation,
   SellProjectValidation,
+  FuzzySearchValidation,
+  ParticularListingValidation,
 };
