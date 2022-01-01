@@ -2,6 +2,7 @@ const Joi = require('joi');
 const enums = require('../../models/Listing/enums');
 
 const RentLeaseValidation = Joi.object({
+  name: Joi.string(),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentType: Joi.string()
@@ -42,6 +43,7 @@ const RentLeaseValidation = Joi.object({
 });
 
 const SellApartmentValidation = Joi.object({
+  name: Joi.string(),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentType: Joi.string()
@@ -81,6 +83,7 @@ const SellApartmentValidation = Joi.object({
 });
 
 const SellProjectValidation = Joi.object({
+  name: Joi.string().required().label('Project Name'),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentTypes: Joi.array().items(
@@ -129,33 +132,35 @@ const SellProjectValidation = Joi.object({
   videoLink: Joi.string()
 });
 
-// const keys = Object.keys({
-//   apartmentType: Joi.string().valid(...enums.apartmentType).required(),
-//   price: Joi.string().required(),
-//   pricePerSqFt: Joi.string().required(),
-//   allInclusivePrice: Joi.boolean(),
-//   taxAndGovtChargesExcluded: Joi.boolean(),
-//   priceNegotiable: Joi.boolean(),
-//   numBathrooms: Joi.string().required(),
-//   numBalconies: Joi.string().required(),
-//   carpetArea: Joi.string().required(),
-//   builtUpArea: Joi.string(),
-//   superBuiltUpArea: Joi.string(),
-//   otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
-//   furnishing: Joi.string().valid(...enums.furnishing).required(),
-// });
+const FuzzySearchValidation = Joi.object({
+  query: Joi.string().allow(''),
+  type: Joi.array()
+    .items(
+      Joi.string()
+        .valid(...Object.values(enums.listingTypes))
+        .required()
+    )
+    .min(1)
+    .required()
+});
 
-// console.log(keys);
-
-// console.log(
-//   keys.reduce((p, k) => {
-//     p[k] = k;
-//     return p;
-//   }, {})
-// );
+const ParticularListingValidation = Joi.object({
+  size: Joi.number(),
+  page: Joi.number(),
+  type: Joi.array()
+    .items(
+      Joi.string()
+        .valid(...Object.values(enums.listingTypes))
+        .required()
+    )
+    .min(1)
+    .required()
+});
 
 module.exports = {
   RentLeaseValidation,
   SellApartmentValidation,
-  SellProjectValidation
+  SellProjectValidation,
+  FuzzySearchValidation,
+  ParticularListingValidation
 };

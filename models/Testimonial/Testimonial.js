@@ -21,8 +21,7 @@ const TestimonialSchema = new mongoose.Schema({
     minLength: 100,
   },
   show: {
-    type: Boolean,
-    default: false,
+    type: Boolean
   },
   createdAt: {
     type: Date,
