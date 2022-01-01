@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
+const FuzzySearch = require('fuzzy-search');
 
 const Listing = require('../models/Listing');
 const {
@@ -9,10 +10,102 @@ const {
   RentLeaseValidation,
   SellApartmentValidation,
   SellProjectValidation,
+  FuzzySearchValidation,
+  ParticularListingValidation,
 } = require('../utils/validation/listing');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
+
+
+// @route   GET listings/fuzzy
+// @desc    To fetch particular type of listings with query
+// @access  Public
+router.post('/fuzzy', async (req, res) => {
+  const { query, type } = req.body;
+
+  //Validation
+  const { error, value } = checkError(FuzzySearchValidation, {
+    query,
+    type,
+  });
+ 
+  if (error) {
+    return res.status(400).json({ success: false, errors: error });
+  }
+
+  try {
+    let listings = await Listing.find({ listingType: { $in: type } });
+
+    let fields = type.reduce(
+      (p, c) => {
+        return [...p, `${c}.location`, `${c}.landmark`];
+      },
+      ['name']
+    );
+
+    const searcher = new FuzzySearch(listings, fields);
+    listings = searcher.search(query);
+
+    return res.status(200).json({
+      success: true,
+      payload: listings,
+      message: 'Properties data fetched successfully.',
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errors: { toasts: ['Server error occurred'] },
+    });
+  }
+});
+
+
+// @route   GET listings/particular
+// @desc    To fetch particular type of listings
+// @access  Public
+router.post('/particular', async (req, res) => {
+  let { page, size, type } = req.body;
+
+  //Validation
+  const { error, value } = checkError(ParticularListingValidation, {
+    page,
+    size,
+    type,
+  });
+ 
+  if (error) {
+    return res.status(400).json({ success: false, errors: error });
+  }
+
+  try {
+    if(!page){
+      page = 1
+    }
+
+    if(!size){
+      size = 10
+    }
+
+    let listings = await Listing.find({ listingType: { $in: type } })
+      .skip((page - 1) * size)
+      .limit(size);
+
+    return res.status(200).json({
+      success: true,
+      payload: listings,
+      message: 'Properties data fetched successfully.',
+    });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errors: { toasts: ['Server error occurred'] },
+    });
+  }
+});
 
 
 // @route   GET listings/all
