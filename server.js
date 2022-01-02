@@ -42,7 +42,7 @@ app.use('/users', require('./routes/users'));
 app.use('/auth', require('./routes/auth'));
 app.use('/listings', require('./routes/listing'));
 app.use('/testimonial', require('./routes/testimonial'));
-app.use('/website', require('./routes/website'));
+app.use('/upload', require('./routes/upload'));
 
 app.use('*', (req, res, next) => {
   return res.status(404).json({

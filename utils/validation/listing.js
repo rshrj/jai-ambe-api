@@ -57,8 +57,8 @@ const SellApartmentValidation = Joi.object({
   numBathrooms: Joi.string().required(),
   numBalconies: Joi.string().required(),
   carpetArea: Joi.string().required(),
-  builtUpArea: Joi.string(),
-  superBuiltUpArea: Joi.string(),
+  builtUpArea: Joi.string().allow(''),
+  superBuiltUpArea: Joi.string().allow(''),
   otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
   furnishing: Joi.string()
     .valid(...enums.furnishing)

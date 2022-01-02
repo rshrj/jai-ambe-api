@@ -7,7 +7,7 @@ module.exports =
       if (err || !user) {
         return res.status(401).json({
           success: false,
-          message: 'Unable to login',
+          toasts: ['Unauthorized to access this endpoint'],
           errors: info
         });
       }

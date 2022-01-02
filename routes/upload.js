@@ -8,37 +8,31 @@ const { nanoid } = require('nanoid');
 const Upload = require('../models/Upload');
 
 const uploadSettings = {
-  image: {
+  picture: {
     formFieldName: 'picture',
     allowMimetype: ['image/png', 'image/jpg', 'image/jpeg'],
-    fileSizeLimit: 5242880, //5mb in bytes
-  },
+    fileSizeLimit: 5242880 //5mb in bytes
+  }
 };
 
-// @route   POST website/upload/:type/:id
+// @route   POST /:type
 // @desc    To upload a file according to setting and get url to access that file.
 //          params  =>  {
 //                        type : This will be setting type
-//                        id : a unique id to identify image.
 //                      }
 // @access  ADMIN, CUSTOMER
-router.post('/upload/:type/:id', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
   const { user, params } = req;
-  const { type, id } = params;
+  const { type } = params;
 
-  let errors = {};
   if (!Object.keys(uploadSettings).includes(type)) {
-    errors = { type: 'Please provide a valid upload type.' };
-  }
-  if (!id) {
-    errors = { ...errors, id: 'Please provide a valid id.' };
-  }
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ success: false, errors: errors });
+    return res
+      .status(400)
+      .json({ success: false, toasts: ['Not a valid upload type'] });
   }
 
   // To check & create uploaded folder in public folder in root directory .
-  let folderName = nodePath.join(__dirname, '..','public');
+  let folderName = nodePath.join(__dirname, '..', 'public');
 
   if (!fs.existsSync(folderName)) {
     fs.mkdirSync(folderName);
@@ -55,7 +49,7 @@ router.post('/upload/:type/:id', auth(CUSTOMER, ADMIN), async (req, res) => {
     filename: (req, file, cb) => {
       const fileName = nanoid() + '.' + file.originalname.split('.').pop();
       return cb(null, fileName);
-    },
+    }
   });
 
   const fileFilter = (req, file, cb) => {
@@ -73,26 +67,27 @@ router.post('/upload/:type/:id', auth(CUSTOMER, ADMIN), async (req, res) => {
   const upload = multer({
     storage: fileStorage,
     fileFilter: fileFilter,
-    limits: { fileSize: uploadSettings[type].fileSizeLimit }, // 5mb in bytes
+    limits: { fileSize: uploadSettings[type].fileSizeLimit } // 5mb in bytes
   }).single(uploadSettings[type].formFieldName);
 
   upload(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
+      console.log(err);
       return res.status(500).json({
         success: false,
-        message: err.message,
+        message: err.message
       });
     } else if (err) {
       console.log(err);
       // An unknown error occurred when uploading.
       return res.status(500).json({
         success: false,
-        errors: { toasts: ['Server error occurred'] },
+        errors: { toasts: ['Server error occurred'] }
       });
     } else if (!req.file) {
       return res.status(400).json({
         success: false,
-        errors: { toasts: ['Please upload an image.'] },
+        errors: { toasts: ['Please upload an image.'] }
       });
     } else {
       try {
@@ -101,21 +96,20 @@ router.post('/upload/:type/:id', auth(CUSTOMER, ADMIN), async (req, res) => {
         const uploadedFile = new Upload({
           path,
           uploadSettingType: type,
-          id,
-          uploadedBy: user._id,
+          uploadedBy: user._id
         });
         await uploadedFile.save();
 
         return res.json({
           success: true,
-          payload: { id, path },
-          message: 'File uploaded successfully.',
+          payload: uploadedFile,
+          message: 'File uploaded successfully.'
         });
       } catch (error) {
         console.log(error);
         return res.status(500).json({
           success: false,
-          errors: { toasts: ['Server error occurred'] },
+          errors: { toasts: ['Server error occurred'] }
         });
       }
     }

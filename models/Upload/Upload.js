@@ -1,27 +1,23 @@
 const mongoose = require('mongoose');
 
 const UploadSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-  },
   uploadSettingType: {
     type: String,
-    required: true,
+    required: true
   },
   path: {
     type: String,
-    required: true,
+    required: true
   },
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'users',
-    required: true,
+    required: true
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model('uploads', UploadSchema);
