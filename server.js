@@ -14,6 +14,9 @@ connectDB();
 
 const app = express();
 
+//To serve static files or uploaded files
+app.use(express.static('./public'));
+
 // Parse request bodies as JSON
 app.use(express.json());
 app.use(passport.initialize());
