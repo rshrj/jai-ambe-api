@@ -108,3 +108,6 @@ uploads/
 
 # Sheets
 sheets/
+
+#for uploaded files
+public/uploaded
