@@ -182,58 +182,161 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
   }
 });
 
-// @route   POST listings/:listingId
-// @desc    ADMIN =>  Can provide listingId to fetch all details of that property.
-//          CUSTOMER => Can provide listingId & fetch all details of that property(Own).
-// @access  CUSTOMER, ADMIN
-router.get('/:listingId', auth(CUSTOMER, ADMIN), async (req, res) => {
-  const {
-    user,
-    params: { listingId }
-  } = req;
+router.get(
+  '/:listingId',
+  async (req, res, next) => {
+    const {
+      params: { listingId }
+    } = req;
 
-  if (!mongoose.isValidObjectId(listingId)) {
-    return res.status(400).json({
-      success: false,
-      errors: { listingId: 'Invalid listingId provided.' }
-    });
-  }
-
-  try {
-    let listing = await Listing.findById(listingId);
-
-    if (!listing) {
-      return res.status(404).json({
+    if (!mongoose.isValidObjectId(listingId)) {
+      return res.status(400).json({
         success: false,
-        toasts: ['Listing with the given listingId was not found.']
+        toasts: ['Sorry, nothing found :(']
       });
     }
 
-    if (
-      user.role == ADMIN ||
-      (user.role == CUSTOMER &&
-        listing.createdBy.toString() == user._id.toString())
-    ) {
-      return res.status(200).json({
+    try {
+      let listing = await Listing.findOne({ id: listingId });
+
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          toasts: ['Sorry, nothing found :(']
+        });
+      }
+
+      if (listing.state === 'Approved') {
+        return res.json({
+          success: true,
+          payload:
+            listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
+          message: 'Listing details found successfully.'
+        });
+      }
+
+      res.locals.listing = listing;
+      next();
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred']
+      });
+    }
+  },
+  auth(ADMIN, CUSTOMER),
+  (req, res, next) => {
+    let { user } = req;
+    let { listing } = res.locals;
+
+    if (user.role === ADMIN) {
+      return res.json({
         success: true,
         payload:
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
         message: 'Listing details found successfully.'
       });
-    } else {
-      return res.status(403).json({
-        success: false,
-        toasts: ['You are not authorized to perform this action.']
+    }
+
+    if (
+      user.role === CUSTOMER &&
+      listing.createdBy.toString() == user._id.toString()
+    ) {
+      return res.json({
+        success: true,
+        payload:
+          listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
+        message: 'Listing details found successfully.'
       });
     }
-  } catch (err) {
-    console.log(err);
+
+    return res.status(403).json({
+      success: false,
+      toasts: ['Sorry, nothing found :(']
+    });
+  }
+);
+
+router.get('/related/:listingId', async (req, res) => {
+  const size = 4;
+
+  try {
+    let listings = await Listing.find({
+      state: 'Approved'
+    })
+      .sort('-createdAt')
+      .limit(size);
+
+    return res.json({
+      success: true,
+      payload: listings
+        .map((listing) =>
+          listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+        )
+        .filter((listing) => listing._id.toString() !== req.params.listingId)
+    });
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       toasts: ['Server error occurred']
     });
   }
 });
+
+// @route   POST listings/:listingId
+// @desc    ADMIN =>  Can provide listingId to fetch all details of that property.
+//          CUSTOMER => Can provide listingId & fetch all details of that property(Own).
+// @access  CUSTOMER, ADMIN
+// router.get('/:listingId', auth(CUSTOMER, ADMIN), async (req, res) => {
+//   const {
+//     user,
+//     params: { listingId }
+//   } = req;
+
+//   if (!mongoose.isValidObjectId(listingId)) {
+//     return res.status(400).json({
+//       success: false,
+//       errors: { listingId: 'Invalid listingId provided.' }
+//     });
+//   }
+
+//   try {
+//     let listing = await Listing.findById(listingId);
+
+//     if (!listing) {
+//       return res.status(404).json({
+//         success: false,
+//         toasts: ['Listing with the given listingId was not found.']
+//       });
+//     }
+
+//     if (
+//       user.role == ADMIN ||
+//       (user.role == CUSTOMER &&
+//         listing.createdBy.toString() == user._id.toString())
+//     ) {
+//       return res.status(200).json({
+//         success: true,
+//         payload:
+//           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
+//         message: 'Listing details found successfully.'
+//       });
+//     } else {
+//       return res.status(403).json({
+//         success: false,
+//         toasts: ['You are not authorized to perform this action.']
+//       });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).json({
+//       success: false,
+//       toasts: ['Server error occurred']
+//     });
+//   }
+// });
 
 // @route   POST listings/user
 // @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
