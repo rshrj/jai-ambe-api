@@ -17,6 +17,37 @@ const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
 
+router.get('/featured', async (req, res) => {
+  const buySize = 8;
+  const rentSize = 4;
+
+  try {
+    let buy = await Listing.find({
+      state: 'Approved',
+      type: { $in: [SELL_APARTMENT, SELL_PROJECT] }
+    })
+      .sort('-createdAt')
+      .limit(buySize);
+    let rent = await Listing.find({ state: 'Approved', type: RENT_LEASE })
+      .sort('-createdAt')
+      .limit(rentSize);
+
+    return res.json({
+      success: true,
+      payload: {
+        buy,
+        rent
+      }
+    });
+  } catch (error) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred']
+    });
+  }
+});
+
 // @route   GET listings/fuzzy
 // @desc    To fetch particular type of listings with query
 // @access  Public
@@ -34,7 +65,10 @@ router.post('/fuzzy', async (req, res) => {
   }
 
   try {
-    let listings = await Listing.find({ listingType: { $in: type } });
+    let listings = await Listing.find({
+      state: 'Approved',
+      type: { $in: type }
+    });
 
     let fields = type.reduce(
       (p, c) => {
@@ -86,7 +120,7 @@ router.post('/particular', async (req, res) => {
       size = 10;
     }
 
-    let listings = await Listing.find({ listingType: { $in: type } })
+    let listings = await Listing.find({ type: { $in: type } })
       .skip((page - 1) * size)
       .limit(size);
 
@@ -291,7 +325,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     const listing = new Listing({
       state: 'Submitted',
       createdBy: user._id,
-      listingType: RENT_LEASE,
+      type: RENT_LEASE,
       name: name,
       rentlease: {
         location: location,
@@ -415,7 +449,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     const listing = new Listing({
       state: 'Submitted',
       createdBy: user._id,
-      listingType: SELL_APARTMENT,
+      type: SELL_APARTMENT,
       name: name,
       sellapartment: {
         location: location,
@@ -520,7 +554,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     const listing = new Listing({
       state: 'Submitted',
       createdBy: user._id,
-      listingType: SELL_PROJECT,
+      type: SELL_PROJECT,
       name: name,
       sellproject: {
         location: location,

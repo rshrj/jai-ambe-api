@@ -11,7 +11,6 @@ const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const checkError = require('../utils/error/checkError');
 
-
 // @route   GET users/all
 // @desc    To get all users data
 // @access  ADMIN
@@ -32,7 +31,6 @@ router.get('/all', auth(ADMIN), async (req, res) => {
     });
   }
 });
-
 
 // @route   GET users/me
 // @desc    To get your own data.
@@ -64,7 +62,6 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
   }
 });
 
-
 // @route   POST users/signup
 // @desc    To signup a user.
 //          body => { email, name: { first, last }, password, password2, phone }
@@ -83,7 +80,7 @@ router.post('/signup', async (req, res, next) => {
     name: { first, last },
     password,
     password2,
-    phone,
+    phone
   });
 
   if (error) {
@@ -137,8 +134,7 @@ router.post('/signup', async (req, res, next) => {
     return res.json({
       success: true,
       payload: token,
-      message:
-        "Successfully created an account. Please verify your email"
+      message: 'Successfully created an account. Please verify your email'
     });
   } catch (err) {
     console.log(err);
@@ -151,7 +147,8 @@ router.post('/signup', async (req, res, next) => {
 
 router.get('/test', (req, res) => {
   return res.json({
-    hello: 'test!'
+    hello: 'test!',
+    ip: req.ip
   });
 });
 
@@ -166,15 +163,15 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
       email,
       name: { first, last },
       password,
-      phone,
-    },
+      phone
+    }
   } = req;
 
   const { error, value } = checkError(checkUserUpdate, {
     email,
     name: { first, last },
     password,
-    phone,
+    phone
   });
 
   if (error) {

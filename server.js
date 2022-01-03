@@ -30,6 +30,9 @@ app.use(morgan('combined'));
 // TODO: Restrict CORS policy in production
 app.use(cors());
 
+// Trust Reverse Proxy
+app.set('trust proxy', true);
+
 // Test Async error handling
 // const asyncHandler = require('./utils/error/asyncHandler');
 // app.use('/', asyncHandler((req, res)=>{
@@ -40,9 +43,11 @@ app.use(cors());
 // Route handlers
 app.use('/users', require('./routes/users'));
 app.use('/auth', require('./routes/auth'));
-app.use('/listings', require('./routes/listing'));
-app.use('/testimonial', require('./routes/testimonial'));
+app.use('/listings', require('./routes/listings'));
+app.use('/testimonials', require('./routes/testimonials'));
+app.use('/callbackrequests', require('./routes/callbackrequests'));
 app.use('/upload', require('./routes/upload'));
+app.use('/settings', require('./routes/settings'));
 
 app.use('*', (req, res, next) => {
   return res.status(404).json({

@@ -1,36 +1,37 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const TestimonialSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
   company: {
     type: String,
+    required: true
+  },
+  // image: {
+  //   type: String,
+  // },
+  // mobile: {
+  //   type: String,
+  // },
+  message: {
+    type: String,
     required: true,
-  },
-  image: {
-    type: String,
-  },
-  mobile: {
-    type: String,
-  },
-  testimonial: {
-    type: String,
-    required: true,
-    minLength: 100,
+    minLength: 100
   },
   show: {
-    type: Boolean
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
-  },
+    ref: 'users'
+  }
 });
 
-module.exports = mongoose.model("testimonials", TestimonialSchema);
+module.exports = mongoose.model('testimonials', TestimonialSchema);

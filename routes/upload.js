@@ -75,19 +75,19 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
       console.log(err);
       return res.status(500).json({
         success: false,
-        message: err.message
+        toasts: [err.message]
       });
     } else if (err) {
       console.log(err);
       // An unknown error occurred when uploading.
       return res.status(500).json({
         success: false,
-        errors: { toasts: ['Server error occurred'] }
+        toasts: ['Server error occurred']
       });
     } else if (!req.file) {
       return res.status(400).json({
         success: false,
-        errors: { toasts: ['Please upload an image.'] }
+        toasts: ['Please upload an image.']
       });
     } else {
       try {
@@ -109,7 +109,7 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
         console.log(error);
         return res.status(500).json({
           success: false,
-          errors: { toasts: ['Server error occurred'] }
+          toasts: ['Server error occurred']
         });
       }
     }
