@@ -72,7 +72,7 @@ router.post('/add', async (req, res) => {
   }
 
   try {
-    const testimonial = new Testimonial({ ...value });
+    const testimonial = new Testimonial({ ...value, show: true }); // TODO: Change show to false once dashboard is ready
 
     await testimonial.save();
 

@@ -16,6 +16,8 @@ const {
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
+const objToArray = require('../utils/helpers/objToArray');
+const decorateProject = require('../utils/helpers/decorateProject');
 
 router.get('/featured', async (req, res) => {
   const buySize = 8;
@@ -28,6 +30,7 @@ router.get('/featured', async (req, res) => {
     })
       .sort('-createdAt')
       .limit(buySize);
+
     let rent = await Listing.find({ state: 'Approved', type: RENT_LEASE })
       .sort('-createdAt')
       .limit(rentSize);
@@ -35,12 +38,14 @@ router.get('/featured', async (req, res) => {
     return res.json({
       success: true,
       payload: {
-        buy,
+        buy: buy.map((listing) =>
+          listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+        ),
         rent
       }
     });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     return res.status(500).json({
       success: false,
       toasts: ['Server error occurred']
@@ -82,7 +87,9 @@ router.post('/fuzzy', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      payload: listings,
+      payload: listings.map((listing) =>
+        listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+      ),
       message: 'Properties data fetched successfully.'
     });
   } catch (err) {
@@ -126,14 +133,16 @@ router.post('/particular', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      payload: listings,
+      payload: listings.map((listing) =>
+        listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+      ),
       message: 'Properties data fetched successfully.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
@@ -159,14 +168,16 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      payload: listings,
+      payload: listings.map((listing) =>
+        listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+      ),
       message: 'Properties data fetched successfully.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
@@ -205,7 +216,8 @@ router.get('/:listingId', auth(CUSTOMER, ADMIN), async (req, res) => {
     ) {
       return res.status(200).json({
         success: true,
-        payload: listing,
+        payload:
+          listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
         message: 'Listing details found successfully.'
       });
     } else {
@@ -241,7 +253,9 @@ router.post('/user', auth(ADMIN), async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      payload: listings,
+      payload: listings.map((listing) =>
+        listing.type === SELL_PROJECT ? decorateProject(listing) : listing
+      ),
       message: 'Properties data fetched successfully.'
     });
   } catch (err) {
@@ -323,7 +337,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Submitted',
+      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: RENT_LEASE,
       name: name,
@@ -447,7 +461,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Submitted',
+      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_APARTMENT,
       name: name,
@@ -526,13 +540,15 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     videoLink
   } = body;
 
+  unitsArray = objToArray(units, 'apartmentType');
+
   //Validation
   const { error, value } = checkError(SellProjectValidation, {
     name: name,
     location: location,
     landmark: landmark,
     apartmentTypes: apartmentTypes,
-    units: units,
+    units: unitsArray,
     coveredParking: coveredParking,
     openParking: openParking,
     totalFloors: totalFloors,
@@ -552,7 +568,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Submitted',
+      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_PROJECT,
       name: name,
@@ -560,7 +576,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
         location: location,
         landmark: landmark,
         apartmentTypes: apartmentTypes,
-        units: units,
+        units: unitsArray,
         coveredParking: coveredParking,
         openParking: openParking,
         totalFloors: totalFloors,
