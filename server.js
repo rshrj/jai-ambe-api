@@ -43,13 +43,13 @@ app.set('trust proxy', true);
 // }));
 
 // Route handlers
-app.use('/users', require('./routes/users'));
-app.use('/auth', require('./routes/auth'));
-app.use('/listings', require('./routes/listings'));
-app.use('/testimonials', require('./routes/testimonials'));
-app.use('/callbackrequests', require('./routes/callbackrequests'));
-app.use('/upload', require('./routes/upload'));
-app.use('/settings', require('./routes/settings'));
+app.use('/api/v1/users', require('./routes/users'));
+app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1/listings', require('./routes/listings'));
+app.use('/api/v1/testimonials', require('./routes/testimonials'));
+app.use('/api/v1/callbackrequests', require('./routes/callbackrequests'));
+app.use('/api/v1/upload', require('./routes/upload'));
+app.use('/api/v1/settings', require('./routes/settings'));
 
 app.use('*', (req, res, next) => {
   return res.status(404).json({
