@@ -5,7 +5,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express');
 const passport = require('passport');
-const morgan = require('morgan');
 const cors = require('cors');
 
 // Connect to MongoDB server
@@ -24,7 +23,10 @@ app.use(passport.initialize());
 require('./utils/auth/passport');
 
 // Log each request using morgan
-app.use(morgan('combined'));
+if (process.env.NODE_ENV !== 'production') {
+  const morgan = require('morgan');
+  app.use(morgan('combined'));
+}
 
 // Enable CORS, any origin
 // TODO: Restrict CORS policy in production
