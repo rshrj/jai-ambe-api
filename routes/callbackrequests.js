@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 
 const CallBackRequest = require('../models/CallBackRequest');
 const {
@@ -58,5 +59,55 @@ router.post('/new', async (req, res) => {
     });
   }
 });
+
+router.put('/updateState', auth(ADMIN), async (req, res) => {
+  const { callbackId, state } = req.body;
+
+  let errors = {};
+
+  if (!mongoose.isValidObjectId(callbackId)) {
+    errors = { callbackId: 'Invalid listingId provided.' };
+  }
+  if (!['pendingCall', 'calledAlready'].includes(state)) {
+    errors = { ...errors, state: 'Invalid state provided.' };
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      errors: errors,
+    });
+  }
+
+  try {
+    let listing = await CallBackRequest.findById(callbackId);
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Callback Request with the given callbackId was not found.'],
+      });
+    }
+
+    listing = await CallBackRequest.findByIdAndUpdate(
+      CallBackRequest,
+      { state: state },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      payload: listing,
+      message: `Callback request state changed successfully.`,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
+    });
+  }
+});
+
 
 module.exports = router;
