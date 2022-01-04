@@ -9,7 +9,7 @@ const {
 const ListingSchema = new mongoose.Schema({
   state: {
     type: String,
-    enum: ['Submitted', 'Approved', 'Deactivated'],
+    enum: ['Submitted', 'Approved', 'Rejected', 'Deactivated'],
     default: 'Submitted'
   },
   type: {

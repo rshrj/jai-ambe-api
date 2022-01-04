@@ -16,4 +16,10 @@ module.exports = {
   ],
   availabilityStatus: ['readyToMove', 'underConstruction'],
   ownershipType: ['freehold', 'leasehold', 'cooperativeSociety'],
+  listingState  : {
+    SUBMITTED : 'Submitted', 
+    APPROVED : 'Approved', 
+    REJECTED : 'Rejected', 
+    DEACTIVATED : 'Deactivated'
+  }
 };

@@ -4,14 +4,15 @@ const FuzzySearch = require('fuzzy-search');
 
 const Listing = require('../models/Listing');
 const {
-  listingTypes: { RENT_LEASE, SELL_APARTMENT, SELL_PROJECT }
+  listingTypes: { RENT_LEASE, SELL_APARTMENT, SELL_PROJECT },
+  listingState: { SUBMITTED, APPROVED, REJECTED, DEACTIVATED },
 } = require('../models/Listing/enums');
 const {
   RentLeaseValidation,
   SellApartmentValidation,
   SellProjectValidation,
   FuzzySearchValidation,
-  ParticularListingValidation
+  ParticularListingValidation,
 } = require('../utils/validation/listing');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
@@ -25,13 +26,13 @@ router.get('/featured', async (req, res) => {
 
   try {
     let buy = await Listing.find({
-      state: 'Approved',
-      type: { $in: [SELL_APARTMENT, SELL_PROJECT] }
+      state: APPROVED,
+      type: { $in: [SELL_APARTMENT, SELL_PROJECT] },
     })
       .sort('-createdAt')
       .limit(buySize);
 
-    let rent = await Listing.find({ state: 'Approved', type: RENT_LEASE })
+    let rent = await Listing.find({ state: APPROVED, type: RENT_LEASE })
       .sort('-createdAt')
       .limit(rentSize);
 
@@ -41,14 +42,14 @@ router.get('/featured', async (req, res) => {
         buy: buy.map((listing) =>
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing
         ),
-        rent
-      }
+        rent,
+      },
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -62,7 +63,7 @@ router.post('/fuzzy', async (req, res) => {
   //Validation
   const { error, value } = checkError(FuzzySearchValidation, {
     query,
-    type
+    type,
   });
 
   if (error) {
@@ -71,8 +72,8 @@ router.post('/fuzzy', async (req, res) => {
 
   try {
     let listings = await Listing.find({
-      state: 'Approved',
-      type: { $in: type }
+      state: APPROVED,
+      type: { $in: type },
     });
 
     let fields = type.reduce(
@@ -90,13 +91,13 @@ router.post('/fuzzy', async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: 'Properties data fetched successfully.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -111,7 +112,7 @@ router.post('/particular', async (req, res) => {
   const { error, value } = checkError(ParticularListingValidation, {
     page,
     size,
-    type
+    type,
   });
 
   if (error) {
@@ -136,13 +137,13 @@ router.post('/particular', async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: 'Properties data fetched successfully.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -171,13 +172,13 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: 'Properties data fetched successfully.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -186,13 +187,13 @@ router.get(
   '/:listingId',
   async (req, res, next) => {
     const {
-      params: { listingId }
+      params: { listingId },
     } = req;
 
     if (!mongoose.isValidObjectId(listingId)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Sorry, nothing found :(']
+        toasts: ['Sorry, nothing found :('],
       });
     }
 
@@ -202,7 +203,7 @@ router.get(
       if (!listing) {
         return res.status(404).json({
           success: false,
-          toasts: ['Sorry, nothing found :(']
+          toasts: ['Sorry, nothing found :('],
         });
       }
 
@@ -211,7 +212,7 @@ router.get(
           success: true,
           payload:
             listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-          message: 'Listing details found successfully.'
+          message: 'Listing details found successfully.',
         });
       }
 
@@ -221,7 +222,7 @@ router.get(
       console.log(err);
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ['Server error occurred'],
       });
     }
   },
@@ -235,7 +236,7 @@ router.get(
         success: true,
         payload:
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-        message: 'Listing details found successfully.'
+        message: 'Listing details found successfully.',
       });
     }
 
@@ -247,13 +248,13 @@ router.get(
         success: true,
         payload:
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-        message: 'Listing details found successfully.'
+        message: 'Listing details found successfully.',
       });
     }
 
     return res.status(403).json({
       success: false,
-      toasts: ['Sorry, nothing found :(']
+      toasts: ['Sorry, nothing found :('],
     });
   }
 );
@@ -263,7 +264,7 @@ router.get('/related/:listingId', async (req, res) => {
 
   try {
     let listings = await Listing.find({
-      state: 'Approved'
+      state: APPROVED,
     })
       .sort('-createdAt')
       .limit(size);
@@ -274,13 +275,13 @@ router.get('/related/:listingId', async (req, res) => {
         .map((listing) =>
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing
         )
-        .filter((listing) => listing._id.toString() !== req.params.listingId)
+        .filter((listing) => listing._id.toString() !== req.params.listingId),
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -348,7 +349,7 @@ router.post('/user', auth(ADMIN), async (req, res) => {
     if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).json({
         success: false,
-        errors: { userId: 'Invalid userId provided.' }
+        errors: { userId: 'Invalid userId provided.' },
       });
     }
 
@@ -359,13 +360,13 @@ router.post('/user', auth(ADMIN), async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: 'Properties data fetched successfully.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      errors: { toasts: ['Server error occurred'] },
     });
   }
 });
@@ -402,7 +403,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo,
     pictures,
     featuredPicture,
-    videoLink
+    videoLink,
   } = body;
 
   //Validation
@@ -431,7 +432,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo: willingToRentOutTo,
     pictures: pictures,
     featuredPicture: featuredPicture,
-    videoLink: videoLink
+    videoLink: videoLink,
   });
 
   if (error) {
@@ -440,7 +441,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
+      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: RENT_LEASE,
       name: name,
@@ -468,8 +469,8 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
         willingToRentOutTo: willingToRentOutTo,
         pictures: pictures,
         featuredPicture: featuredPicture,
-        videoLink: videoLink
-      }
+        videoLink: videoLink,
+      },
     });
 
     await listing.save();
@@ -477,7 +478,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Rent/Lease Property added successfully.'
+      message: 'Rent/Lease Property added successfully.',
     });
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
@@ -485,7 +486,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -524,7 +525,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     usp,
     pictures,
     featuredPicture,
-    videoLink
+    videoLink,
   } = body;
 
   //Validation
@@ -555,7 +556,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     usp: usp,
     pictures: pictures,
     featuredPicture: featuredPicture,
-    videoLink: videoLink
+    videoLink: videoLink,
   });
 
   if (error) {
@@ -564,7 +565,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
+      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_APARTMENT,
       name: name,
@@ -594,8 +595,8 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
         usp: usp,
         pictures: pictures,
         featuredPicture: featuredPicture,
-        videoLink: videoLink
-      }
+        videoLink: videoLink,
+      },
     });
 
     await listing.save();
@@ -603,7 +604,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Sell Apartment Property added successfully.'
+      message: 'Sell Apartment Property added successfully.',
     });
   } catch (err) {
     console.log(err);
@@ -612,7 +613,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -640,7 +641,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures,
     featuredPicture,
     brochureLink,
-    videoLink
+    videoLink,
   } = body;
 
   unitsArray = objToArray(units, 'apartmentType');
@@ -662,7 +663,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     brochureLink: brochureLink,
-    videoLink: videoLink
+    videoLink: videoLink,
   });
 
   if (error) {
@@ -671,7 +672,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: 'Approved', // TODO: Change this to Submitted once Dashboard is ready
+      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_PROJECT,
       name: name,
@@ -690,8 +691,8 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
         pictures: pictures,
         featuredPicture: featuredPicture,
         brochureLink: brochureLink,
-        videoLink: videoLink
-      }
+        videoLink: videoLink,
+      },
     });
 
     await listing.save();
@@ -699,7 +700,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     return res.status(201).json({
       success: true,
       payload: listing,
-      message: 'Sell Project Property added successfully.'
+      message: 'Sell Project Property added successfully.',
     });
   } catch (err) {
     console.log(err);
@@ -708,7 +709,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -720,13 +721,13 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
   const {
     body: { listingId },
-    user
+    user,
   } = req;
 
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
-      errors: { listingId: 'Invalid listingId provided.' }
+      errors: { listingId: 'Invalid listingId provided.' },
     });
   }
 
@@ -736,7 +737,7 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        toasts: ['Listing with the given listingId was not found.']
+        toasts: ['Listing with the given listingId was not found.'],
       });
     }
 
@@ -750,19 +751,65 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Listing has been deleted successfully.'
+        message: 'Listing has been deleted successfully.',
       });
     } else {
       return res.status(403).json({
         success: false,
-        toasts: ['You are not authorized to perform this action.']
+        toasts: ['You are not authorized to perform this action.'],
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
+    });
+  }
+});
+
+router.put('/updateState', auth(ADMIN), async (req, res) => {
+  const { listingId, state } = req.body;
+
+  let errors = {};
+
+  if (!mongoose.isValidObjectId(listingId)) {
+    errors = { listingId: 'Invalid listingId provided.' };
+  }
+  if (![SUBMITTED, APPROVED, REJECTED, DEACTIVATED].includes(state)) {
+    errors = { ...errors, state: 'Invalid state provided.' };
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      success: false,
+      errors: errors,
+    });
+  }
+
+  try {
+    let listing = await Listing.findById(listingId);
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Listing with the given listingId was not found.'],
+      });
+    }
+
+    listing = await Listing.findByIdAndUpdate(listingId, { state : state }, { new : true });
+
+      return res.status(200).json({
+        success: true,
+        payload: listing,
+        message: `Listing ${state} Successfully.`,
+      });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
     });
   }
 });
