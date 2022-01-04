@@ -198,7 +198,7 @@ router.get(
     }
 
     try {
-      let listing = await Listing.findOne({ id: listingId });
+      let listing = await Listing.findById(listingId);
 
       if (!listing) {
         return res.status(404).json({
@@ -207,7 +207,7 @@ router.get(
         });
       }
 
-      if (listing.state === 'Approved') {
+      if (listing.state === APPROVED) {
         return res.json({
           success: true,
           payload:
