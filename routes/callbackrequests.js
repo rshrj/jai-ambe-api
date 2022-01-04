@@ -64,7 +64,7 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
   const { callbackId, state } = req.body;
 
   let errors = {};
-
+  
   if (!mongoose.isValidObjectId(callbackId)) {
     errors = { callbackId: 'Invalid listingId provided.' };
   }
@@ -89,17 +89,23 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
       });
     }
 
+    let previousState = listing.state;
+
     listing = await CallBackRequest.findByIdAndUpdate(
-      CallBackRequest,
+      callbackId,
       { state: state },
       { new: true }
     );
 
-    return res.status(200).json({
-      success: true,
-      payload: listing,
-      message: `Callback request state changed successfully.`,
-    });
+    if (previousState == listing.state){
+      return res.json({success:true});
+    } else {
+      return res.status(200).json({
+        success: true,
+        payload: listing,
+        message: `Callback request state changed successfully.`,
+      });
+    }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
