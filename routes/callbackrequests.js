@@ -2,11 +2,30 @@ const express = require('express');
 
 const CallBackRequest = require('../models/CallBackRequest');
 const {
-  CallBackRequestValidation
+  CallBackRequestValidation,
 } = require('../utils/validation/callbackrequest.js');
 const checkError = require('../utils/error/checkError');
+const { CUSTOMER, ADMIN } = require('../models/User/roles');
+const auth = require('../utils/auth');
 
 const router = express.Router();
+
+router.get('/all', auth(ADMIN), async (req, res) => {
+  try {
+    const allcb = await CallBackRequest.find();
+    return res.json({
+      success: true,
+      payload: allcb,
+      message: 'Call back requests fetched successfully',
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
+    });
+  }
+});
 
 router.post('/new', async (req, res) => {
   const { name, phone, message } = req.body;
@@ -14,7 +33,7 @@ router.post('/new', async (req, res) => {
   const { error, value } = checkError(CallBackRequestValidation, {
     name,
     phone,
-    message
+    message,
   });
 
   if (error) {
@@ -29,13 +48,13 @@ router.post('/new', async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Call back request made successfully'
+      message: 'Call back request made successfully',
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
