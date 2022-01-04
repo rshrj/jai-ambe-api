@@ -198,7 +198,7 @@ router.get(
     }
 
     try {
-      let listing = await Listing.findById(listingId);
+      let listing = await Listing.findOne({ _id: listingId });
 
       if (!listing) {
         return res.status(404).json({
