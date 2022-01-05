@@ -6,6 +6,13 @@ const { checkLogin } = require('../utils/validation/auth');
 const User = require('../models/User/User');
 const checkError = require('../utils/error/checkError');
 
+/* 
+  All @routes
+  =>   POST auth/login
+  =>   GET auth/verify/:token
+*/
+
+
 // @route   POST auth/login
 // @desc    For login
 // @access  Public
@@ -15,7 +22,7 @@ router.post('/login', async (req, res, next) => {
   console.log(password);
   const { error, value } = checkError(checkLogin, {
     email,
-    password
+    password,
   });
 
   if (error) {
@@ -29,21 +36,21 @@ router.post('/login', async (req, res, next) => {
       if (err) {
         return res.status(500).json({
           success: false,
-          errors: { toasts: ['Server error occurred'] }
+          toasts: ['Server error occurred'],
         });
       }
       if (!user) {
         return res.status(400).json({
           success: false,
-          message: 'Unable to login',
-          errors: info
+          toasts: ['Unable to login'],
+          errors: info,
         });
       }
       req.login(user, { session: false }, (err) => {
         if (err) {
           return res.status(500).json({
             success: false,
-            errors: { toasts: ['Server error occurred'] }
+            toasts: ['Server error occurred'],
           });
         }
 
@@ -54,12 +61,13 @@ router.post('/login', async (req, res, next) => {
         return res.json({
           success: true,
           payload: token,
-          message: 'Logged in successfully'
+          message: 'Logged in successfully',
         });
       });
     }
   )(req, res, next);
 });
+
 
 // @route   GET auth/verify/:token
 // @desc    To verify user via token
@@ -73,7 +81,7 @@ router.get('/verify/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        errors: { toasts: ['Invalid verification token'] }
+        toasts: ['Invalid verification token'],
       });
     }
 
@@ -83,13 +91,13 @@ router.get('/verify/:token', async (req, res) => {
     return res.json({
       success: true,
       payload: user,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred'],
     });
   }
 });

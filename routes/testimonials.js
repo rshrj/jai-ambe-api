@@ -13,10 +13,20 @@ const checkError = require('../utils/error/checkError');
     => /create needs discussion for fields.
 */
 
+/*
+  All @routes
+  =>  GET testimonial/all
+  =>  GET testimonial/show
+  =>  POST testimonial/add
+  =>  POST testimonial/create
+  =>  PUT testimonial/update
+  =>  DELETE testimonial/delete
+*/
+
+
 // @route   GET testimonial/all
 // @desc    To Fetch all testimonial
 // @access  ADMIN
-
 router.get('/all', auth(ADMIN), async (req, res) => {
   try {
     const testimonials = await Testimonial.find();
@@ -30,10 +40,11 @@ router.get('/all', auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   GET testimonial/show
 // @desc    To fetch all approved testimonials to display on website.
@@ -51,10 +62,11 @@ router.get('/show', async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   POST testimonial/add
 // @desc    To add new testimonial via form on website.
@@ -90,6 +102,7 @@ router.post('/add', async (req, res) => {
   }
 });
 
+
 // @route   POST testimonial/create
 // @desc    To add new testimonial by existing user.
 //          body => { name, company, image, mobile, testimonial }
@@ -124,10 +137,11 @@ router.post('/create', auth(CUSTOMER, ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   PUT testimonial/update
 // @desc    To update an existing testimonial
@@ -159,9 +173,7 @@ router.put('/update', auth(ADMIN), async (req, res) => {
     if (!testimonial) {
       return res.status(404).json({
         success: false,
-        errors: {
-          toasts: ['Testimonial with the given testimonialId was not found.']
-        }
+        toasts: ['Testimonial with the given testimonialId was not found.']
       });
     }
 
@@ -180,7 +192,7 @@ router.put('/update', auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
@@ -211,16 +223,14 @@ router.delete('/delete', auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        errors: {
-          toasts: ['Testimonial with the given testimonialId was not found.']
-        }
+        toasts: ['Testimonial with the given testimonialId was not found.']
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
