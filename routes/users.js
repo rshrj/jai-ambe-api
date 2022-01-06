@@ -11,6 +11,17 @@ const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const checkError = require('../utils/error/checkError');
 
+
+/*
+  All @routes
+  =>   GET users/all
+  =>   GET users/me
+  =>   POST users/reset-password
+  =>   POST users/signup
+  =>   PUT users/update
+  =>   DELETE users/
+*/
+
 // @route   GET users/all
 // @desc    To get all users data
 // @access  ADMIN
@@ -27,10 +38,11 @@ router.get('/all', auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   GET users/me
 // @desc    To get your own data.
@@ -42,7 +54,7 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
       return res.status(500).json({
         success: false,
         payload: req.user,
-        errors: { toasts: ['Unable to get user details'] }
+        toasts: ['Unable to get user details'] 
       });
     }
 
@@ -57,10 +69,11 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
     return res.status(500).json({
       success: false,
       payload: req.user,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   POST users/signup
 // @desc    To signup a user.
@@ -140,7 +153,7 @@ router.post('/signup', async (req, res, next) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
@@ -151,6 +164,7 @@ router.get('/test', (req, res) => {
     ip: req.ip
   });
 });
+
 
 // @route   PUT users/update
 // @desc    To update a user profile.
@@ -204,10 +218,11 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
     console.log(error);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   DELETE users/
 // @desc    To delete a user.
@@ -234,17 +249,18 @@ router.delete('/', auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        errors: { toasts: ['User with the given userId was not found.'] }
+        toasts: ['User with the given userId was not found.']
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   POST users/reset-password
 // @desc    To reset password a user's password
@@ -275,14 +291,14 @@ router.post('/reset-password', auth(ADMIN), async (req, res) => {
     } else {
       return res.status(404).json({
         success: false,
-        errors: { toasts: ['User with the given userId was not found.'] }
+        toasts: ['User with the given userId was not found.']
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });

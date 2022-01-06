@@ -20,6 +20,27 @@ const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
 
+/*
+  All @routes
+  =>   GET listings/featured
+  =>   GET listings/fuzzy
+  =>   GET listings/particular
+  =>   GET listings/all
+  =>   GET listings/:listingId
+  =>   GET listings/related/:listingId
+  =>   POST listings/:listingId
+  =>   POST listings/user
+  =>   POST listings/add/rentlease
+  =>   POST listings/add/sellapartment
+  =>   POST listings/add/sellproject
+  =>   PUT listings/updateState
+  =>   DELETE listings/delete
+*/
+
+
+// @route   GET listings/featured
+// @desc    To fetch featured properties.
+// @access  Public
 router.get('/featured', async (req, res) => {
   const buySize = 8;
   const rentSize = 4;
@@ -53,6 +74,7 @@ router.get('/featured', async (req, res) => {
     });
   }
 });
+
 
 // @route   GET listings/fuzzy
 // @desc    To fetch particular type of listings with query
@@ -102,6 +124,7 @@ router.post('/fuzzy', async (req, res) => {
   }
 });
 
+
 // @route   GET listings/particular
 // @desc    To fetch particular type of listings
 // @access  Public
@@ -148,6 +171,7 @@ router.post('/particular', async (req, res) => {
   }
 });
 
+
 // @route   GET listings/all
 // @desc    ADMIN =>  Can  fetch all listings of a user
 //          CUSTOMER => Can fetch his/her all listings.
@@ -183,6 +207,10 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
   }
 });
 
+
+// @route   GET listings/:listingId
+// @desc    To fetch particular listing with listingId.
+// @access  Private
 router.get(
   '/:listingId',
   async (req, res, next) => {
@@ -259,8 +287,19 @@ router.get(
   }
 );
 
+
+// @route   GET listings/related/:listingId
+// @desc    To fetch related properties.
+// @access  PUBLIC
 router.get('/related/:listingId', async (req, res) => {
   const size = 4;
+
+  if (!mongoose.isValidObjectId(req.params.listingId)) {
+    return res.status(400).json({
+      success: false,
+      errors: { listingId: 'Invalid listingId provided.' },
+    });
+  }
 
   try {
     let listings = await Listing.find({
@@ -339,6 +378,7 @@ router.get('/related/:listingId', async (req, res) => {
 //   }
 // });
 
+
 // @route   POST listings/user
 // @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
 // @access  ADMIN
@@ -366,10 +406,11 @@ router.post('/user', auth(ADMIN), async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] },
+      toasts: ['Server error occurred'],
     });
   }
 });
+
 
 /*
  @route   POST listings/add/rentlease
@@ -490,6 +531,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     });
   }
 });
+
 
 /*
  @route   POST listings/add/sellapartment
@@ -618,6 +660,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
 /*
  @route   POST listings/add/sellproject
  @desc    Add new sellproject property
@@ -644,7 +687,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     videoLink,
   } = body;
 
-  unitsArray = objToArray(units, 'apartmentType');
+  let unitsArray = objToArray(units, 'apartmentType');
 
   //Validation
   const { error, value } = checkError(SellProjectValidation, {
@@ -699,7 +742,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      payload: listing,
+      payload: decorateProject(listing),
       message: 'Sell Project Property added successfully.',
     });
   } catch (err) {
@@ -713,6 +756,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     });
   }
 });
+
 
 // @route   DELETE listings/delete
 // @desc    To delete a existing property
@@ -750,7 +794,7 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        payload: listing,
+        payload: listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
         message: 'Listing has been deleted successfully.',
       });
     } else {
@@ -768,6 +812,11 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
+
+// @route   PUT listings/updateState
+// @desc    To update the state of a listing.
+//          body => { listingId, state}
+// @access  ADMIN
 router.put('/updateState', auth(ADMIN), async (req, res) => {
   const { listingId, state } = req.body;
 
@@ -801,7 +850,8 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        payload: listing,
+        payload:
+          listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
         message: `Listing ${state} Successfully.`,
       });
 
