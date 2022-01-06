@@ -2,8 +2,6 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-console.log('Running init Script...');
-
 // Connect to MongoDB server
 const prompt = require('prompt');
 const { nanoid } = require('nanoid');
