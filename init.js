@@ -2,7 +2,7 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-console.log('Running init script...');
+console.log('Running init script..');
 
 // Connect to MongoDB server
 const prompt = require('prompt');
