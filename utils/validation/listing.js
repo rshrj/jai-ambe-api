@@ -39,7 +39,7 @@ const RentLeaseValidation = Joi.object({
     .required(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string()
+  videoLink: Joi.string().allow('').optional()
 });
 
 const SellApartmentValidation = Joi.object({
@@ -79,7 +79,7 @@ const SellApartmentValidation = Joi.object({
   usp: Joi.string(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string()
+  videoLink: Joi.string().allow('').optional()
 });
 
 const SellProjectValidation = Joi.object({
@@ -128,8 +128,8 @@ const SellProjectValidation = Joi.object({
   usp: Joi.string(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  brochureLink: Joi.string(),
-  videoLink: Joi.string()
+  brochureLink: Joi.string().allow('').optional(),
+  videoLink: Joi.string().allow('').optional()
 });
 
 const FuzzySearchValidation = Joi.object({

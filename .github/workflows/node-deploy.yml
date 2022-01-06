@@ -1,0 +1,29 @@
+name: Express Backend Deploy
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+      - '**.md'
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+    steps:
+      - name: Prepare to SSH into the VPS
+        run: mkdir ~/.ssh
+      - run: 'echo "$SSH_KEY" >> ~/.ssh/id_deploy_machine'
+      - run: 'chmod 400 ~/.ssh/id_deploy_machine'
+      - run: 'echo -e "Host deploy-machine\n\tUser $SSH_USER\n\tHostName $SSH_HOST\n\tIdentityFile ~/.ssh/id_deploy_machine\n\tStrictHostKeyChecking No" >> ~/.ssh/config'
+      - name: Pull the changes into the remote folder
+        run: 'ssh deploy-machine "cd ~/jaiambe/jai-ambe-api" && git pull'
+      - name: Install dependencies remotely
+        run: 'ssh deploy-machine "cd ~/jaiambe/jai-ambe-api" && npm install --production'
+      - name: Restart PM2
+        run: 'ssh deploy-machine "pm2 restart all'
+      - run: echo "🍏 This job's status is ${{ job.status }}."

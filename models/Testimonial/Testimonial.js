@@ -12,9 +12,9 @@ const TestimonialSchema = new mongoose.Schema({
   // image: {
   //   type: String,
   // },
-  // mobile: {
-  //   type: String,
-  // },
+  phone: {
+    type: String
+  },
   message: {
     type: String,
     required: true,
