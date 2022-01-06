@@ -20,10 +20,12 @@ jobs:
       - run: 'echo "$SSH_KEY" >> ~/.ssh/id_deploy_machine'
       - run: 'chmod 400 ~/.ssh/id_deploy_machine'
       - run: 'echo -e "Host deploy-machine\n\tUser $SSH_USER\n\tHostName $SSH_HOST\n\tIdentityFile ~/.ssh/id_deploy_machine\n\tStrictHostKeyChecking No" >> ~/.ssh/config'
+      - name: Source PATH
+        run: 'ssh deploy-machine "source ~/.bashrc"'
       - name: Pull the changes into the remote folder
         run: 'ssh deploy-machine "cd ~/jaiambe/jai-ambe-api; git pull"'
       - name: Install dependencies remotely
-        run: 'ssh deploy-machine "cd ~/jaiambe/jai-ambe-api; /home/admin/.nvm/versions/node/v16.13.1/bin/npm install --production"'
+        run: 'ssh deploy-machine "cd ~/jaiambe/jai-ambe-api; npm install --production"'
       - name: Restart PM2
-        run: 'ssh deploy-machine "/home/admin/.nvm/versions/node/v16.13.1/bin/pm2 restart all"'
+        run: 'ssh deploy-machine "pm2 restart all"'
       - run: echo "🍏 This job's status is ${{ job.status }}."
