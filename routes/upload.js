@@ -15,6 +15,13 @@ const uploadSettings = {
   }
 };
 
+
+/*
+  All @routes
+  =>   POST /:type
+*/
+
+
 // @route   POST /:type
 // @desc    To upload a file according to setting and get url to access that file.
 //          params  =>  {

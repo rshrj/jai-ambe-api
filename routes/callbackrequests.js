@@ -8,9 +8,19 @@ const {
 const checkError = require('../utils/error/checkError');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth');
-
 const router = express.Router();
 
+/*
+  All @routes
+  =>   GET callbackrequests/all
+  =>   POST callbackrequests/new
+  =>   PUT callbackrequests/updateState
+*/
+
+
+// @route   GET callbackrequests/all
+// @desc    To fetch all callback requests.
+// @access  ADMIN
 router.get('/all', auth(ADMIN), async (req, res) => {
   try {
     const allcb = await CallBackRequest.find();
@@ -28,6 +38,10 @@ router.get('/all', auth(ADMIN), async (req, res) => {
   }
 });
 
+
+// @route   POST callbackrequests/new
+// @desc    To create a new callback request
+// @access  PUBLIC
 router.post('/new', async (req, res) => {
   const { name, phone, message } = req.body;
 
@@ -60,6 +74,10 @@ router.post('/new', async (req, res) => {
   }
 });
 
+
+// @route   PUT callbackrequests/updateState
+// @desc    To update the state of a callback request.
+// @access  ADMIN
 router.put('/updateState', auth(ADMIN), async (req, res) => {
   const { callbackId, state } = req.body;
 

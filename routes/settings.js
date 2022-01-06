@@ -6,6 +6,13 @@ const auth = require('../utils/auth');
 const { ADMIN } = require('../models/User/roles');
 const checkError = require('../utils/error/checkError');
 
+/*
+  All @routes
+  =>   GET /settings/homead
+  =>   POST /settings/homead
+*/
+
+
 // @route   GET /settings/homead
 // @desc    Get Home Ad
 // @access  Public
@@ -28,10 +35,11 @@ router.get('/homead', async (req, res) => {
     console.log(err);
     return res.status(500).json({
       success: false,
-      errors: { toasts: ['Server error occurred'] }
+      toasts: ['Server error occurred']
     });
   }
 });
+
 
 // @route   POST /settings/homead
 // @desc    Changes Home Ad
