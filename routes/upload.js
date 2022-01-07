@@ -31,7 +31,7 @@ const uploadSettings = {
 router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
   const { user, params } = req;
   const { type } = params;
-
+  console.log(type);
   if (!Object.keys(uploadSettings).includes(type)) {
     return res
       .status(400)
@@ -98,7 +98,7 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
       });
     } else {
       try {
-        const path = `${process.env.BASEURL}/uploaded/${req.file.filename}`;
+        const path = `${process.env.ROOT_PATH}/uploaded/${req.file.filename}`;
 
         const uploadedFile = new Upload({
           path,

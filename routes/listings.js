@@ -767,7 +767,6 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
     body: { listingId },
     user,
   } = req;
-
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
