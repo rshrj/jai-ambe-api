@@ -775,7 +775,7 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 
   try {
-    let listing = await Listing.findById(listingId);
+    let listing = await Listing.findByIdAndDelete(listingId);
 
     if (!listing) {
       return res.status(404).json({
