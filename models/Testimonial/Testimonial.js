@@ -6,8 +6,7 @@ const TestimonialSchema = new mongoose.Schema({
     required: true
   },
   company: {
-    type: String,
-    required: true
+    type: String
   },
   // image: {
   //   type: String,
