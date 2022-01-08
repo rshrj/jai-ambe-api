@@ -14,6 +14,10 @@ const UploadSchema = new mongoose.Schema({
     ref: 'users',
     required: true
   },
+  attached: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now

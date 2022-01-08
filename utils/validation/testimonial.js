@@ -9,5 +9,5 @@ module.exports.checkTestimonial = Joi.object({
     .label('Mobile Number'),
   // image: Joi.string(),
   // mobile: Joi.string().length(10),
-  message: Joi.string().min(100).required()
+  message: Joi.string().min(80).required()
 });

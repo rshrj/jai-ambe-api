@@ -15,12 +15,10 @@ const uploadSettings = {
   }
 };
 
-
 /*
   All @routes
   =>   POST /:type
 */
-
 
 // @route   POST /:type
 // @desc    To upload a file according to setting and get url to access that file.
@@ -106,6 +104,7 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
           uploadedBy: user._id
         });
         await uploadedFile.save();
+        // TODO: add scheduleDelete(uploadedFile.id)
 
         return res.json({
           success: true,
