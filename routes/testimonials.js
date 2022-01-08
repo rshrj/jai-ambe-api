@@ -7,11 +7,6 @@ const auth = require('../utils/auth');
 const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const checkError = require('../utils/error/checkError');
 
-/*
-  PENDING WORK:
-    => image upload part is pending in /add & /create routes.
-    => /create needs discussion for fields.
-*/
 
 /*
   All @routes
@@ -21,6 +16,7 @@ const checkError = require('../utils/error/checkError');
   =>  POST testimonial/create
   =>  PUT testimonial/update
   =>  DELETE testimonial/delete
+  =>  POST testimonial/updateState
 */
 
 
@@ -70,7 +66,7 @@ router.get('/show', async (req, res) => {
 
 // @route   POST testimonial/add
 // @desc    To add new testimonial via form on website.
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, image, phone, testimonial }
 // @access  Public
 router.post('/add', async (req, res) => {
   const { body } = req;
@@ -105,7 +101,7 @@ router.post('/add', async (req, res) => {
 
 // @route   POST testimonial/create
 // @desc    To add new testimonial by existing user.
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, phone, testimonial }
 // @access  CUSTOMER, ADMIN
 router.post('/create', auth(CUSTOMER, ADMIN), async (req, res) => {
   const { body, user } = req;
@@ -145,7 +141,7 @@ router.post('/create', auth(CUSTOMER, ADMIN), async (req, res) => {
 
 // @route   PUT testimonial/update
 // @desc    To update an existing testimonial
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, image, phone, testimonial }
 // @access  ADMIN
 router.put('/update', auth(ADMIN), async (req, res) => {
   const { testimonialId, ...updates } = req.body;
@@ -194,6 +190,7 @@ router.put('/update', auth(ADMIN), async (req, res) => {
     });
   }
 });
+
 
 // @route   DELETE testimonial/delete
 // @desc    To update an existing testimonial

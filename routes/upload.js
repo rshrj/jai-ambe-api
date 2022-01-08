@@ -6,6 +6,7 @@ const auth = require('../utils/auth');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const { nanoid } = require('nanoid');
 const Upload = require('../models/Upload');
+const { scheduleDelete } = require('../utils/uploads/scheduleDelete');
 
 const uploadSettings = {
   picture: {
@@ -104,7 +105,8 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
           uploadedBy: user._id
         });
         await uploadedFile.save();
-        // TODO: add scheduleDelete(uploadedFile.id)
+        
+        scheduleDelete(uploadedFile._id);
 
         return res.json({
           success: true,
