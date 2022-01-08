@@ -68,4 +68,6 @@ app.use('*', (req, res, next) => {
 // Port to listen on
 const port = process.env.PORT || 5000;
 
+// TODO: Schedule deleteStrayUploads to run every 30 minutes
+
 app.listen(5000, () => console.log(`Express is listening on port ${port}`));

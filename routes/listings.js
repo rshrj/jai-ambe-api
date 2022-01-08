@@ -19,6 +19,7 @@ const auth = require('../utils/auth/index');
 const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
+const { findAndAttach } = require('../utils/uploads/attachUpload');
 
 /*
   All @routes
@@ -473,6 +474,15 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 
   try {
+    const foundPictures = await findAndAttach(pictures);
+
+    if (!foundPictures) {
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server was unable to process pictures']
+      });
+    }
+
     const listing = new Listing({
       state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
