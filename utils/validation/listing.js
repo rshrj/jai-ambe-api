@@ -73,6 +73,7 @@ const SellApartmentValidation = Joi.object({
   availabilityStatus: Joi.string()
     .valid(...enums.availabilityStatus)
     .required(),
+  possessionBy: Joi.date().optional(),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
     .required(),

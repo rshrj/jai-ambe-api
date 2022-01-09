@@ -4,11 +4,14 @@ const jwt = require('jsonwebtoken');
 const { nanoid } = require('nanoid');
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
+const validator = require('validator');
 
 const { checkLogin, checkResetPassword } = require('../utils/validation/auth');
 const User = require('../models/User/User');
 const checkError = require('../utils/error/checkError');
 const sendMail = require('../utils/mailing/sendmail');
+
+const uiPath = process.env.UI_BASEURL || 'http://localhost:3000';
 
 /* 
   All @routes
@@ -24,11 +27,9 @@ const sendMail = require('../utils/mailing/sendmail');
 // @access  Public
 router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
-  console.log(email);
-  console.log(password);
   const { error, value } = checkError(checkLogin, {
     email,
-    password,
+    password
   });
 
   if (error) {
@@ -40,40 +41,39 @@ router.post('/login', async (req, res, next) => {
     { session: false },
     async (err, user, info) => {
       if (err) {
+        console.log(err);
         return res.status(500).json({
           success: false,
-          toasts: ['Server error occurred'],
+          toasts: ['Server error occurred']
         });
       }
       if (!user) {
         return res.status(400).json({
           success: false,
           toasts: ['Unable to login'],
-          errors: info,
+          errors: info
         });
       }
       req.login(user, { session: false }, (err) => {
         if (err) {
+          console.log(err);
           return res.status(500).json({
             success: false,
-            toasts: ['Server error occurred'],
+            toasts: ['Server error occurred']
           });
         }
 
         const token = jwt.sign(user, process.env.JWTSECRET);
 
-        console.log(req.user);
-
         return res.json({
           success: true,
           payload: token,
-          message: 'Logged in successfully',
+          message: 'Logged in successfully'
         });
       });
     }
   )(req, res, next);
 });
-
 
 // @route   GET auth/verify/:token
 // @desc    To verify user via token
@@ -87,7 +87,7 @@ router.get('/verify/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid verification token'],
+        toasts: ['Invalid verification token']
       });
     }
 
@@ -97,17 +97,16 @@ router.get('/verify/:token', async (req, res) => {
     return res.json({
       success: true,
       payload: user,
-      message: 'Email verified successfully',
+      message: 'Email verified successfully'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred'],
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 // @route   POST auth/forgotpassword
 // @desc    To initial forgotpassword
@@ -117,10 +116,10 @@ router.post('/forgotpassword', async (req, res) => {
 
   const { error, value } = checkError(
     Joi.object({
-      email: Joi.string().trim().email().required().label('Email'),
+      email: Joi.string().trim().email().required().label('Email')
     }),
     {
-      email,
+      email
     }
   );
 
@@ -129,47 +128,53 @@ router.post('/forgotpassword', async (req, res) => {
   }
 
   try {
-    let user = await User.findOne({ email: email });
+    let user = await User.findOne({ email: validator.normalizeEmail(email) });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Email does not exists. Please sign up.'],
+        toasts: ['User does not exist. Please sign up.'],
+        errors: { email: 'User does not exist' }
+      });
+    }
+
+    if (user.verificationToken !== '') {
+      return res.status(400).json({
+        success: false,
+        toasts: [
+          'A request already exists. Please check your email for instructions'
+        ],
+        errors: { email: 'Check your email' }
       });
     }
 
     let verificationToken = nanoid(64);
     user.verificationToken = verificationToken;
     await user.save();
-    console.log(user);
 
     await sendMail({
       to: user.email,
       from: process.env.SMTPUSER,
-      subject: 'Reset your password.',
+      subject: 'Password Reset.',
       template: 'resetPassword',
       templateVars: {
         name: user.name.first,
-        verificationLink: `${process.env.UI_BASEURI}/forgotpassword?token=${user.verificationToken}`,
-      },
+        verificationLink: `${uiPath}/forgotpassword?token=${user.verificationToken}`
+      }
     });
-    console.log(
-      `${process.env.UI_BASEURI}/forgotpassword?token=${user.verificationToken}`
-    );
 
     return res.json({
       success: true,
-      message: 'Please check your email to reset your password.',
+      message: 'Please check your email to reset your password.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred'],
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 // @route   GET auth/forgotpassword/:token
 // @desc    To verify forgotpassword token
@@ -177,10 +182,10 @@ router.post('/forgotpassword', async (req, res) => {
 router.get('/forgotpassword/:token', async (req, res) => {
   const { token } = req.params;
 
-  if(!token || token == "" || token.length != 64){
+  if (!token || token == '' || token.length != 64) {
     return res.status(400).json({
       success: false,
-      toasts: ['Invalid token provided'],
+      toasts: ['Invalid token provided']
     });
   }
 
@@ -193,35 +198,34 @@ router.get('/forgotpassword/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid token provided'],
+        toasts: ['Invalid token provided']
       });
     }
 
     return res.json({
       success: true,
       payload: user,
-      message: 'Reset password initiated.',
+      message: 'Reset password initiated.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred'],
+      toasts: ['Server error occurred']
     });
   }
 });
-
 
 // @route   POST auth/resetpassword
 // @desc    To reset password
 // @access  Public
 router.post('/resetpassword', async (req, res) => {
   const { token, password, password2 } = req.body;
-  console.log(token.length);
+
   const { error, value } = checkError(checkResetPassword, {
     token,
     password,
-    password2,
+    password2
   });
 
   if (error) {
@@ -234,7 +238,7 @@ router.post('/resetpassword', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid token provided.'],
+        toasts: ['Invalid token provided.']
       });
     }
 
@@ -245,17 +249,15 @@ router.post('/resetpassword', async (req, res) => {
     user.password = hash;
     await user.save();
 
-    console.log(user);
-
     return res.json({
       success: true,
-      message: 'Your password has been reset successfully. Please login.',
+      message: 'Your password has been reset successfully. Please login.'
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred'],
+      toasts: ['Server error occurred']
     });
   }
 });

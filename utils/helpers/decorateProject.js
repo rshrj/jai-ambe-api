@@ -35,14 +35,6 @@ const decorateProject = (projectListing) => {
     return projectListing;
   }
 
-  console.log({
-    ...projectListing,
-    [type]: {
-      ...projectListing[type],
-      units: arrayToObject('apartmentType', projectListing[type].units)
-    }
-  });
-
   return {
     ...projectListing,
     [type]: {

@@ -4,108 +4,111 @@ const enums = require('./enums');
 const SellApartmentSchema = new mongoose.Schema({
   location: {
     type: String,
-    required: true,
+    required: true
   },
   landmark: {
     type: String,
-    required: true,
+    required: true
   },
   apartmentType: {
     type: String,
     required: true,
-    enum: [...enums.apartmentType],
+    enum: [...enums.apartmentType]
   },
   price: {
     type: String,
-    required: true,
+    required: true
   },
   pricePerSqFt: {
     type: String,
-    required: true,
+    required: true
   },
   allInclusivePrice: {
     type: Boolean,
-    default: false,
+    default: false
   },
   taxAndGovtChargesExcluded: {
     type: Boolean,
-    default: true,
+    default: true
   },
   priceNegotiable: {
     type: Boolean,
-    default: false,
+    default: false
   },
   numBathrooms: {
     type: String,
-    required: true,
+    required: true
   },
   numBalconies: {
     type: String,
-    required: true,
+    required: true
   },
   carpetArea: {
     type: String,
-    required: true,
+    required: true
   },
   builtUpArea: {
-    type: String,
+    type: String
   },
   superBuiltUpArea: {
-    type: String,
+    type: String
   },
   otherRooms: {
     type: [String],
-    enum: [...enums.otherRooms],
+    enum: [...enums.otherRooms]
   },
   furnishing: {
     type: String,
     required: true,
-    enum: [...enums.furnishing],
+    enum: [...enums.furnishing]
   },
   coveredParking: {
     type: Number,
-    default: 0,
+    default: 0
   },
   openParking: {
     type: Number,
-    default: 0,
+    default: 0
   },
   totalFloors: {
     type: String,
-    required: true,
+    required: true
   },
   propertyOnFloor: {
     type: String,
-    required: true,
+    required: true
   },
   ageOfProperty: {
     type: String,
     required: true,
-    enum: [...enums.ageOfProperty],
+    enum: [...enums.ageOfProperty]
   },
   availabilityStatus: {
     type: String,
     required: true,
-    enum: [...enums.availabilityStatus],
+    enum: [...enums.availabilityStatus]
+  },
+  possessionBy: {
+    type: Date
   },
   ownershipType: {
     type: String,
     required: true,
-    enum: [...enums.ownershipType],
+    enum: [...enums.ownershipType]
   },
   usp: {
-    type: String,
+    type: String
   },
   pictures: {
     type: [String],
-    required: true,
+    required: true
   },
   featuredPicture: {
-    type: String,
+    type: String
   },
   videoLink: {
-    type: String,
-  },
+    type: String
+  }
 });
 
 module.exports = SellApartmentSchema;
