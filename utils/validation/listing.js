@@ -77,8 +77,8 @@ const SellApartmentValidation = Joi.object({
     .required(),
   possessionBy: Joi.when('availabilityStatus', {
     is: 'underConstruction',
-    then: Joi.string().required(),
-    otherwise: Joi.string(),
+    then: Joi.date().required(),
+    otherwise: Joi.string.optional(),
   }),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
