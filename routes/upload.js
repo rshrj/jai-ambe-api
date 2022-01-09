@@ -6,6 +6,7 @@ const auth = require('../utils/auth');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const { nanoid } = require('nanoid');
 const Upload = require('../models/Upload');
+const { scheduleDelete } = require('../utils/uploads/scheduleDelete');
 
 const uploadSettings = {
   picture: {
@@ -29,7 +30,7 @@ const uploadSettings = {
 router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
   const { user, params } = req;
   const { type } = params;
-
+  console.log(type);
   if (!Object.keys(uploadSettings).includes(type)) {
     return res
       .status(400)
@@ -96,7 +97,7 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
       });
     } else {
       try {
-        const path = `${process.env.BASEURL}/uploaded/${req.file.filename}`;
+        const path = `${process.env.ROOT_PATH}/uploaded/${req.file.filename}`;
 
         const uploadedFile = new Upload({
           path,
@@ -104,7 +105,8 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
           uploadedBy: user._id
         });
         await uploadedFile.save();
-        // TODO: add scheduleDelete(uploadedFile.id)
+        
+        scheduleDelete(uploadedFile._id);
 
         return res.json({
           success: true,

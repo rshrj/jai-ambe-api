@@ -7,6 +7,9 @@ const express = require('express');
 const passport = require('passport');
 const cors = require('cors');
 
+// const { deleteStrayUploads } = require('./utils/uploads/scheduleDelete');
+// deleteStrayUploads();
+
 // Connect to MongoDB server
 const connectDB = require('./config/db');
 connectDB();
@@ -58,6 +61,8 @@ app.use('*', (req, res, next) => {
     toasts: ['Page not found']
   });
 });
+
+
 
 // For Error Handling
 // app.use((err, req, res, next)=>{

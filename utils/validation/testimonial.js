@@ -7,7 +7,5 @@ module.exports.checkTestimonial = Joi.object({
     .pattern(/^[6-9]\d{9}$/)
     .required()
     .label('Mobile Number'),
-  // image: Joi.string(),
-  // mobile: Joi.string().length(10),
   message: Joi.string().min(80).required()
 });
