@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const enums = require('./enums');
 
 const SellApartmentSchema = new mongoose.Schema({
+  societyName: {
+    type: String,
+  },
   location: {
     type: String,
     required: true,
@@ -87,6 +90,9 @@ const SellApartmentSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [...enums.availabilityStatus],
+  },
+  possessionBy: {
+    type: String,
   },
   ownershipType: {
     type: String,

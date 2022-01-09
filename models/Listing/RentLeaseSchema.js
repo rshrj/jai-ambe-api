@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const enums = require('./enums');
 
 const RentLeaseSchema = new mongoose.Schema({
+  societyName: {
+    type: String,
+  },
   location: {
     type: String,
     required: true,
