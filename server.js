@@ -7,8 +7,9 @@ const express = require('express');
 const passport = require('passport');
 const cors = require('cors');
 
-// const { deleteStrayUploads } = require('./utils/uploads/scheduleDelete');
-// deleteStrayUploads();
+// Automatically delete stray uploads every 30 minutes
+const { deleteStrayUploads } = require('./utils/uploads/scheduleDelete');
+deleteStrayUploads();
 
 // Connect to MongoDB server
 const connectDB = require('./config/db');
@@ -62,8 +63,6 @@ app.use('*', (req, res, next) => {
   });
 });
 
-
-
 // For Error Handling
 // app.use((err, req, res, next)=>{
 //   console.log(err);
@@ -72,7 +71,5 @@ app.use('*', (req, res, next) => {
 
 // Port to listen on
 const port = process.env.PORT || 5000;
-
-// TODO: Schedule deleteStrayUploads to run every 30 minutes
 
 app.listen(5000, () => console.log(`Express is listening on port ${port}`));

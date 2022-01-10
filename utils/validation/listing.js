@@ -40,7 +40,7 @@ const RentLeaseValidation = Joi.object({
     .required(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string().allow('').optional(),
+  videoLink: Joi.string().allow('').optional()
 });
 
 const SellApartmentValidation = Joi.object({
@@ -78,7 +78,7 @@ const SellApartmentValidation = Joi.object({
   possessionBy: Joi.when('availabilityStatus', {
     is: 'underConstruction',
     then: Joi.date().required(),
-    otherwise: Joi.string.optional(),
+    otherwise: Joi.string().optional()
   }),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
@@ -86,7 +86,7 @@ const SellApartmentValidation = Joi.object({
   usp: Joi.string(),
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
-  videoLink: Joi.string().allow('').optional(),
+  videoLink: Joi.string().allow('').optional()
 });
 
 const SellProjectValidation = Joi.object({
@@ -117,7 +117,7 @@ const SellProjectValidation = Joi.object({
       otherRooms: Joi.array().items(Joi.string().valid(...enums.otherRooms)),
       furnishing: Joi.string()
         .valid(...enums.furnishing)
-        .required(),
+        .required()
     })
   ),
   coveredParking: Joi.number(),
@@ -132,7 +132,7 @@ const SellProjectValidation = Joi.object({
   possessionBy: Joi.when('availabilityStatus', {
     is: 'underConstruction',
     then: Joi.string().required(),
-    otherwise: Joi.string(),
+    otherwise: Joi.string()
   }),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
@@ -141,7 +141,7 @@ const SellProjectValidation = Joi.object({
   pictures: Joi.array().items(Joi.string().required()).min(1).required(),
   featuredPicture: Joi.string(),
   brochureLink: Joi.string().allow('').optional(),
-  videoLink: Joi.string().allow('').optional(),
+  videoLink: Joi.string().allow('').optional()
 });
 
 const FuzzySearchValidation = Joi.object({

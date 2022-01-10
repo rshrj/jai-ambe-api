@@ -13,8 +13,7 @@ const TestimonialSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: true,
-    minLength: 100
+    required: true
   },
   show: {
     type: Boolean
