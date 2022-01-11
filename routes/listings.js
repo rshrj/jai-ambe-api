@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const FuzzySearch = require('fuzzy-search');
+const _ = require('lodash');
 
 const Listing = require('../models/Listing');
 const {
@@ -891,7 +892,6 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     videoLink: videoLink,
-    possessionBy: possessionBy
   });
 
   if (error) {
@@ -944,8 +944,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
             usp: usp,
             pictures: pictures,
             featuredPicture: featuredPicture,
-            videoLink: videoLink,
-            possessionBy: possessionBy
+            videoLink: videoLink
           }
         }
       }
@@ -994,6 +993,13 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     videoLink,
     possessionBy
   } = body;
+
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if(checkDiff.length > 0){
+    checkDiff.forEach(d=>{
+      delete units[d];
+    });
+  }
 
   let unitsArray = objToArray(units, 'apartmentType');
 
@@ -1095,6 +1101,13 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     possessionBy
   } = body;
 
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if (checkDiff.length > 0) {
+    checkDiff.forEach((d) => {
+      delete units[d];
+    });
+  }
+
   let unitsArray = objToArray(units, 'apartmentType');
 
   if (!mongoose.isValidObjectId(_id)) {
@@ -1171,8 +1184,7 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
             pictures: pictures,
             featuredPicture: featuredPicture,
             brochureLink: brochureLink,
-            videoLink: videoLink,
-            possessionBy: possessionBy
+            videoLink: videoLink
           }
         }
       }
