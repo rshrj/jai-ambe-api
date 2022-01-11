@@ -487,7 +487,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
 
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: RENT_LEASE,
       name: name,
@@ -759,7 +759,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_APARTMENT,
       name: name,
@@ -1030,7 +1030,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_PROJECT,
       name: name,
