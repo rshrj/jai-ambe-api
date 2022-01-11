@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const FuzzySearch = require('fuzzy-search');
+const _ = require('lodash');
 
 const Listing = require('../models/Listing');
 const {
@@ -486,7 +487,7 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
 
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: RENT_LEASE,
       name: name,
@@ -758,7 +759,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_APARTMENT,
       name: name,
@@ -891,7 +892,6 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     videoLink: videoLink,
-    possessionBy: possessionBy
   });
 
   if (error) {
@@ -944,8 +944,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
             usp: usp,
             pictures: pictures,
             featuredPicture: featuredPicture,
-            videoLink: videoLink,
-            possessionBy: possessionBy
+            videoLink: videoLink
           }
         }
       }
@@ -995,6 +994,13 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     possessionBy
   } = body;
 
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if(checkDiff.length > 0){
+    checkDiff.forEach(d=>{
+      delete units[d];
+    });
+  }
+
   let unitsArray = objToArray(units, 'apartmentType');
 
   //Validation
@@ -1024,7 +1030,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_PROJECT,
       name: name,
@@ -1094,6 +1100,13 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     videoLink,
     possessionBy
   } = body;
+
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if (checkDiff.length > 0) {
+    checkDiff.forEach((d) => {
+      delete units[d];
+    });
+  }
 
   let unitsArray = objToArray(units, 'apartmentType');
 
@@ -1171,8 +1184,7 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
             pictures: pictures,
             featuredPicture: featuredPicture,
             brochureLink: brochureLink,
-            videoLink: videoLink,
-            possessionBy: possessionBy
+            videoLink: videoLink
           }
         }
       }
