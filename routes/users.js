@@ -11,7 +11,6 @@ const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const checkError = require('../utils/error/checkError');
 
-
 /*
   All @routes
   =>   GET users/all
@@ -43,7 +42,6 @@ router.get('/all', auth(ADMIN), async (req, res) => {
   }
 });
 
-
 // @route   GET users/me
 // @desc    To get your own data.
 // @access  ADMIN, CUSTOMER
@@ -54,11 +52,10 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
       return res.status(500).json({
         success: false,
         payload: req.user,
-        toasts: ['Unable to get user details'] 
+        toasts: ['Unable to get user details']
       });
     }
 
-    console.log(req.user);
     return res.json({
       success: true,
       payload: user,
@@ -73,7 +70,6 @@ router.get('/me', auth(ADMIN, CUSTOMER), async (req, res, next) => {
     });
   }
 });
-
 
 // @route   POST users/signup
 // @desc    To signup a user.
@@ -107,7 +103,10 @@ router.post('/signup', async (req, res, next) => {
   if (user) {
     return res.status(400).json({
       success: false,
-      message: 'User already exists'
+      message: 'User already exists',
+      errors: {
+        email: 'User already exists'
+      }
     });
   }
 
@@ -164,7 +163,6 @@ router.get('/test', (req, res) => {
     ip: req.ip
   });
 });
-
 
 // @route   PUT users/update
 // @desc    To update a user profile.
@@ -223,7 +221,6 @@ router.put('/update', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 });
 
-
 // @route   DELETE users/
 // @desc    To delete a user.
 //          body => { userId }
@@ -260,7 +257,6 @@ router.delete('/', auth(ADMIN), async (req, res) => {
     });
   }
 });
-
 
 // @route   POST users/reset-password
 // @desc    To reset password a user's password

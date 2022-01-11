@@ -7,11 +7,6 @@ const auth = require('../utils/auth');
 const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const checkError = require('../utils/error/checkError');
 
-/*
-  PENDING WORK:
-    => image upload part is pending in /add & /create routes.
-    => /create needs discussion for fields.
-*/
 
 /*
   All @routes
@@ -21,6 +16,7 @@ const checkError = require('../utils/error/checkError');
   =>  POST testimonial/create
   =>  PUT testimonial/update
   =>  DELETE testimonial/delete
+  =>  POST testimonial/updateState
 */
 
 
@@ -48,7 +44,7 @@ router.get('/all', auth(ADMIN), async (req, res) => {
 
 // @route   GET testimonial/show
 // @desc    To fetch all approved testimonials to display on website.
-// @access  ADMIN
+// @access  Public
 router.get('/show', async (req, res) => {
   try {
     const testimonials = await Testimonial.find({ show: true });
@@ -70,7 +66,7 @@ router.get('/show', async (req, res) => {
 
 // @route   POST testimonial/add
 // @desc    To add new testimonial via form on website.
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, image, phone, testimonial }
 // @access  Public
 router.post('/add', async (req, res) => {
   const { body } = req;
@@ -105,7 +101,7 @@ router.post('/add', async (req, res) => {
 
 // @route   POST testimonial/create
 // @desc    To add new testimonial by existing user.
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, phone, testimonial }
 // @access  CUSTOMER, ADMIN
 router.post('/create', auth(CUSTOMER, ADMIN), async (req, res) => {
   const { body, user } = req;
@@ -145,19 +141,17 @@ router.post('/create', auth(CUSTOMER, ADMIN), async (req, res) => {
 
 // @route   PUT testimonial/update
 // @desc    To update an existing testimonial
-//          body => { name, company, image, mobile, testimonial }
+//          body => { name, company, image, phone, testimonial }
 // @access  ADMIN
 router.put('/update', auth(ADMIN), async (req, res) => {
   const { testimonialId, ...updates } = req.body;
 
-  const { error, value } = checkTestimonial.validate({
-    ...updates
+  const { error, value } = checkError(checkTestimonial, {
+    ...updates,
   });
 
   if (error) {
-    return res
-      .status(400)
-      .json({ success: false, message: error.details[0].message });
+    return res.status(400).json({ success: false, errors: error });
   }
 
   if (!mongoose.isValidObjectId(testimonialId)) {
@@ -197,6 +191,7 @@ router.put('/update', auth(ADMIN), async (req, res) => {
   }
 });
 
+
 // @route   DELETE testimonial/delete
 // @desc    To update an existing testimonial
 //          body => { testimonialId }
@@ -226,6 +221,60 @@ router.delete('/delete', auth(ADMIN), async (req, res) => {
         toasts: ['Testimonial with the given testimonialId was not found.']
       });
     }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred']
+    });
+  }
+});
+
+
+// @route   POST testimonial/updateState
+// @desc    To update state of an existing testimonial
+//          body => { testimonialId, show }
+// @access  ADMIN
+router.post('/updateState', auth(ADMIN), async (req, res) => {
+  const { testimonialId, show } = req.body;
+
+ let errors = {};
+
+ if (!mongoose.isValidObjectId(testimonialId)) {
+   errors = { testimonialId: 'Invalid testimonialId provided.' };
+ }
+ if (![true, false].includes(show)) {
+   errors = { ...errors, show: 'Invalid for show provided.' };
+ }
+
+ if (Object.keys(errors).length > 0) {
+   return res.status(400).json({
+     success: false,
+     errors: errors,
+   });
+ }
+
+  try {
+    let testimonial = await Testimonial.findById(testimonialId);
+
+    if (!testimonial) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Testimonial with the given testimonialId was not found.']
+      });
+    }
+
+    testimonial = await Testimonial.findByIdAndUpdate(
+      testimonialId,
+      { show : show },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      payload: testimonial,
+      message: 'Testimonial updated successfully.'
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).json({

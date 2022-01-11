@@ -3,6 +3,7 @@ const enums = require('../../models/Listing/enums');
 
 const RentLeaseValidation = Joi.object({
   name: Joi.string(),
+  societyName: Joi.string(),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentType: Joi.string()
@@ -44,6 +45,7 @@ const RentLeaseValidation = Joi.object({
 
 const SellApartmentValidation = Joi.object({
   name: Joi.string(),
+  societyName: Joi.string(),
   location: Joi.string().required(),
   landmark: Joi.string().required(),
   apartmentType: Joi.string()
@@ -73,6 +75,11 @@ const SellApartmentValidation = Joi.object({
   availabilityStatus: Joi.string()
     .valid(...enums.availabilityStatus)
     .required(),
+  possessionBy: Joi.when('availabilityStatus', {
+    is: 'underConstruction',
+    then: Joi.date().required(),
+    otherwise: Joi.string().optional()
+  }),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
     .required(),
@@ -93,6 +100,7 @@ const SellProjectValidation = Joi.object({
   ),
   units: Joi.array().items(
     Joi.object({
+      _id: Joi.string(),
       apartmentType: Joi.string()
         .valid(...enums.apartmentType)
         .required(),
@@ -121,7 +129,11 @@ const SellProjectValidation = Joi.object({
   availabilityStatus: Joi.string()
     .valid(...enums.availabilityStatus)
     .required(),
-  //   possessionBy: Joi.string().required(),
+  possessionBy: Joi.when('availabilityStatus', {
+    is: 'underConstruction',
+    then: Joi.string().required(),
+    otherwise: Joi.string()
+  }),
   ownershipType: Joi.string()
     .valid(...enums.ownershipType)
     .required(),

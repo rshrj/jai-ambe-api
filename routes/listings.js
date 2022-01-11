@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const FuzzySearch = require('fuzzy-search');
+const _ = require('lodash');
 
 const Listing = require('../models/Listing');
 const {
@@ -437,12 +438,14 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo,
     pictures,
     featuredPicture,
-    videoLink
+    videoLink,
+    societyName
   } = body;
 
   //Validation
   const { error, value } = checkError(RentLeaseValidation, {
     name: name,
+    societyName: societyName,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -484,11 +487,12 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     }
 
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: RENT_LEASE,
       name: name,
       rentlease: {
+        societyName: societyName,
         location: location,
         landmark: landmark,
         apartmentType: apartmentType,
@@ -567,7 +571,8 @@ router.put('/update/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
     willingToRentOutTo,
     pictures,
     featuredPicture,
-    videoLink
+    videoLink,
+    societyName
   } = body;
 
   if (!mongoose.isValidObjectId(_id)) {
@@ -580,6 +585,7 @@ router.put('/update/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
   //Validation
   const { error, value } = checkError(RentLeaseValidation, {
     name: name,
+    societyName: societyName,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -629,6 +635,7 @@ router.put('/update/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
         $set: {
           name: name,
           rentlease: {
+            societyName: societyName,
             location: location,
             landmark: landmark,
             apartmentType: apartmentType,
@@ -683,6 +690,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   const { body, user } = req;
   const {
     name,
+    societyName,
     location,
     landmark,
     apartmentType,
@@ -704,6 +712,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     propertyOnFloor,
     ageOfProperty,
     availabilityStatus,
+    possessionBy,
     ownershipType,
     usp,
     pictures,
@@ -714,6 +723,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   //Validation
   const { error, value } = checkError(SellApartmentValidation, {
     name: name,
+    societyName: societyName,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -735,6 +745,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     propertyOnFloor: propertyOnFloor,
     ageOfProperty: ageOfProperty,
     availabilityStatus: availabilityStatus,
+    possessionBy: possessionBy,
     ownershipType: ownershipType,
     usp: usp,
     pictures: pictures,
@@ -748,11 +759,12 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_APARTMENT,
       name: name,
       sellapartment: {
+        societyName: societyName,
         location: location,
         landmark: landmark,
         apartmentType: apartmentType,
@@ -774,6 +786,7 @@ router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
         propertyOnFloor: propertyOnFloor,
         ageOfProperty: ageOfProperty,
         availabilityStatus: availabilityStatus,
+        possessionBy: possessionBy,
         ownershipType: ownershipType,
         usp: usp,
         pictures: pictures,
@@ -811,6 +824,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   const {
     _id,
     name,
+    societyName,
     location,
     landmark,
     apartmentType,
@@ -832,6 +846,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     propertyOnFloor,
     ageOfProperty,
     availabilityStatus,
+    possessionBy,
     ownershipType,
     usp,
     pictures,
@@ -849,6 +864,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   //Validation
   const { error, value } = checkError(SellApartmentValidation, {
     name: name,
+    societyName: societyName,
     location: location,
     landmark: landmark,
     apartmentType: apartmentType,
@@ -870,11 +886,12 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
     propertyOnFloor: propertyOnFloor,
     ageOfProperty: ageOfProperty,
     availabilityStatus: availabilityStatus,
+    possessionBy: possessionBy,
     ownershipType: ownershipType,
     usp: usp,
     pictures: pictures,
     featuredPicture: featuredPicture,
-    videoLink: videoLink
+    videoLink: videoLink,
   });
 
   if (error) {
@@ -882,7 +899,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 
   try {
-    const listing = await Listing.findOne({ _id });
+    let listing = await Listing.findOne({ _id });
 
     if (
       req.user.role === CUSTOMER &&
@@ -900,6 +917,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
         $set: {
           name: name,
           sellapartment: {
+            societyName: societyName,
             location: location,
             landmark: landmark,
             apartmentType: apartmentType,
@@ -921,6 +939,7 @@ router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
             propertyOnFloor: propertyOnFloor,
             ageOfProperty: ageOfProperty,
             availabilityStatus: availabilityStatus,
+            possessionBy: possessionBy,
             ownershipType: ownershipType,
             usp: usp,
             pictures: pictures,
@@ -971,8 +990,16 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures,
     featuredPicture,
     brochureLink,
-    videoLink
+    videoLink,
+    possessionBy
   } = body;
+
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if(checkDiff.length > 0){
+    checkDiff.forEach(d=>{
+      delete units[d];
+    });
+  }
 
   let unitsArray = objToArray(units, 'apartmentType');
 
@@ -993,7 +1020,8 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     brochureLink: brochureLink,
-    videoLink: videoLink
+    videoLink: videoLink,
+    possessionBy: possessionBy
   });
 
   if (error) {
@@ -1002,7 +1030,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
 
   try {
     const listing = new Listing({
-      state: APPROVED, // TODO: Change this to Submitted once Dashboard is ready
+      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
       createdBy: user._id,
       type: SELL_PROJECT,
       name: name,
@@ -1016,6 +1044,7 @@ router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
         totalFloors: totalFloors,
         ageOfProperty: ageOfProperty,
         availabilityStatus: availabilityStatus,
+        possessionBy: possessionBy,
         ownershipType: ownershipType,
         usp: usp,
         pictures: pictures,
@@ -1068,8 +1097,16 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures,
     featuredPicture,
     brochureLink,
-    videoLink
+    videoLink,
+    possessionBy
   } = body;
+
+  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+  if (checkDiff.length > 0) {
+    checkDiff.forEach((d) => {
+      delete units[d];
+    });
+  }
 
   let unitsArray = objToArray(units, 'apartmentType');
 
@@ -1097,7 +1134,8 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
     pictures: pictures,
     featuredPicture: featuredPicture,
     brochureLink: brochureLink,
-    videoLink: videoLink
+    videoLink: videoLink,
+    possessionBy: possessionBy
   });
 
   if (error) {
@@ -1105,7 +1143,15 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 
   try {
-    const listing = await Listing.findOne({ _id });
+    console.log(_id);
+    let listing = await Listing.findOne({ _id });
+
+    if (!listing) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Listing with the given listingId was not found.']
+      });
+    }
 
     if (
       req.user.role === CUSTOMER &&
@@ -1121,21 +1167,25 @@ router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
       { _id },
       {
         $set: {
-          location: location,
-          landmark: landmark,
-          apartmentTypes: apartmentTypes,
-          units: unitsArray,
-          coveredParking: coveredParking,
-          openParking: openParking,
-          totalFloors: totalFloors,
-          ageOfProperty: ageOfProperty,
-          availabilityStatus: availabilityStatus,
-          ownershipType: ownershipType,
-          usp: usp,
-          pictures: pictures,
-          featuredPicture: featuredPicture,
-          brochureLink: brochureLink,
-          videoLink: videoLink
+          name: name,
+          sellproject: {
+            location: location,
+            landmark: landmark,
+            apartmentTypes: apartmentTypes,
+            units: unitsArray,
+            coveredParking: coveredParking,
+            openParking: openParking,
+            totalFloors: totalFloors,
+            ageOfProperty: ageOfProperty,
+            availabilityStatus: availabilityStatus,
+            possessionBy: possessionBy,
+            ownershipType: ownershipType,
+            usp: usp,
+            pictures: pictures,
+            featuredPicture: featuredPicture,
+            brochureLink: brochureLink,
+            videoLink: videoLink
+          }
         }
       }
     );
@@ -1166,7 +1216,6 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
     body: { listingId },
     user
   } = req;
-
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
@@ -1175,8 +1224,8 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
   }
 
   try {
-    let listing = await Listing.findById(listingId);
-
+    let listing = await Listing.findByIdAndDelete(listingId);
+    console.log(listing);
     if (!listing) {
       return res.status(404).json({
         success: false,
@@ -1189,12 +1238,10 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
       (user.role == CUSTOMER &&
         listing.createdBy.toString() == user._id.toString())
     ) {
-      listing = await Listing.findByIdAndDelete(listingId);
+      await Listing.findByIdAndDelete(listingId);
 
       return res.status(200).json({
         success: true,
-        payload:
-          listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
         message: 'Listing has been deleted successfully.'
       });
     } else {
