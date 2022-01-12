@@ -8,6 +8,7 @@ const validator = require('validator');
 
 const { checkLogin, checkResetPassword } = require('../utils/validation/auth');
 const User = require('../models/User/User');
+const { CUSTOMER } = require('../models/User/roles');
 const checkError = require('../utils/error/checkError');
 const sendMail = require('../utils/mailing/sendmail');
 
@@ -29,7 +30,7 @@ router.post('/login', async (req, res, next) => {
   const { email, password } = req.body;
   const { error, value } = checkError(checkLogin, {
     email,
-    password
+    password,
   });
 
   if (error) {
@@ -44,14 +45,14 @@ router.post('/login', async (req, res, next) => {
         console.log(err);
         return res.status(500).json({
           success: false,
-          toasts: ['Server error occurred']
+          toasts: ['Server error occurred'],
         });
       }
       if (!user) {
         return res.status(400).json({
           success: false,
           toasts: ['Unable to login'],
-          errors: info
+          errors: info,
         });
       }
       req.login(user, { session: false }, (err) => {
@@ -59,16 +60,34 @@ router.post('/login', async (req, res, next) => {
           console.log(err);
           return res.status(500).json({
             success: false,
-            toasts: ['Server error occurred']
+            toasts: ['Server error occurred'],
           });
         }
 
-        const token = jwt.sign(user, process.env.JWTSECRET);
+        User.findById(user._id, (err, user) => {
+          if (err) {
+            return res.status(500).json({
+              success: false,
+              toasts: ['Server error occurred'],
+            });
+          }
 
-        return res.json({
-          success: true,
-          payload: token,
-          message: 'Logged in successfully'
+          if (user.role == CUSTOMER && user.verificationToken.length == 128) {
+            return res.status(403).json({
+              success: false,
+              errors:{ notVerified : true},
+              toasts: ['Please verify your email to login'],
+            });
+          }
+
+          // const token = jwt.sign(user, process.env.JWTSECRET);
+          const token = user.generateAuthToken();
+
+          return res.json({
+            success: true,
+            payload: token,
+            message: 'Logged in successfully',
+          });
         });
       });
     }
@@ -87,7 +106,7 @@ router.get('/verify/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid verification token']
+        toasts: ['Invalid verification token'],
       });
     }
 
@@ -97,13 +116,13 @@ router.get('/verify/:token', async (req, res) => {
     return res.json({
       success: true,
       payload: user,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -116,10 +135,10 @@ router.post('/forgotpassword', async (req, res) => {
 
   const { error, value } = checkError(
     Joi.object({
-      email: Joi.string().trim().email().required().label('Email')
+      email: Joi.string().trim().email().required().label('Email'),
     }),
     {
-      email
+      email,
     }
   );
 
@@ -134,7 +153,7 @@ router.post('/forgotpassword', async (req, res) => {
       return res.status(400).json({
         success: false,
         toasts: ['User does not exist. Please sign up.'],
-        errors: { email: 'User does not exist' }
+        errors: { email: 'User does not exist' },
       });
     }
 
@@ -142,9 +161,9 @@ router.post('/forgotpassword', async (req, res) => {
       return res.status(400).json({
         success: false,
         toasts: [
-          'A request already exists. Please check your email for instructions'
+          'A request already exists. Please check your email for instructions',
         ],
-        errors: { email: 'Check your email' }
+        errors: { email: 'Check your email' },
       });
     }
 
@@ -159,19 +178,19 @@ router.post('/forgotpassword', async (req, res) => {
       template: 'resetPassword',
       templateVars: {
         name: user.name.first,
-        verificationLink: `${uiPath}/forgotpassword?token=${user.verificationToken}`
-      }
+        verificationLink: `${uiPath}/forgotpassword?token=${user.verificationToken}`,
+      },
     });
 
     return res.json({
       success: true,
-      message: 'Please check your email to reset your password.'
+      message: 'Please check your email to reset your password.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -185,7 +204,7 @@ router.get('/forgotpassword/:token', async (req, res) => {
   if (!token || token == '' || token.length != 64) {
     return res.status(400).json({
       success: false,
-      toasts: ['Invalid token provided']
+      toasts: ['Invalid token provided'],
     });
   }
 
@@ -198,20 +217,20 @@ router.get('/forgotpassword/:token', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid token provided']
+        toasts: ['Invalid token provided'],
       });
     }
 
     return res.json({
       success: true,
       payload: user,
-      message: 'Reset password initiated.'
+      message: 'Reset password initiated.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
@@ -225,7 +244,7 @@ router.post('/resetpassword', async (req, res) => {
   const { error, value } = checkError(checkResetPassword, {
     token,
     password,
-    password2
+    password2,
   });
 
   if (error) {
@@ -238,7 +257,7 @@ router.post('/resetpassword', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid token provided.']
+        toasts: ['Invalid token provided.'],
       });
     }
 
@@ -251,13 +270,13 @@ router.post('/resetpassword', async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Your password has been reset successfully. Please login.'
+      message: 'Your password has been reset successfully. Please login.',
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ['Server error occurred'],
     });
   }
 });
