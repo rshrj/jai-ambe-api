@@ -17,6 +17,7 @@ const {
 } = require('../utils/validation/listing');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth/index');
+const checkVerified = require('../utils/auth/checkVerified');
 const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
@@ -411,7 +412,7 @@ router.post('/user', auth(ADMIN), async (req, res) => {
  @desc    Add new rentlease property
  @access  CUSTOMER, ADMIN
 */
-router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
+router.post('/add/rentlease',[ auth(ADMIN, CUSTOMER), checkVerified], async (req, res) => {
   const { body, user } = req;
   const {
     name,
@@ -543,669 +544,689 @@ router.post('/add/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
  @desc    Update existing rentlease property
  @access  CUSTOMER, ADMIN
 */
-router.put('/update/rentlease', auth(ADMIN, CUSTOMER), async (req, res) => {
-  const { body, user } = req;
-  const {
-    _id,
-    name,
-    location,
-    landmark,
-    apartmentType,
-    rent,
-    electricityIncluded,
-    priceNegotiable,
-    deposit,
-    numBathrooms,
-    numBalconies,
-    carpetArea,
-    builtUpArea,
-    superBuiltUpArea,
-    otherRooms,
-    furnishing,
-    coveredParking,
-    openParking,
-    totalFloors,
-    propertyOnFloor,
-    ageOfProperty,
-    availableFrom,
-    willingToRentOutTo,
-    pictures,
-    featuredPicture,
-    videoLink,
-    societyName
-  } = body;
+router.put(
+  '/update/rentlease',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      _id,
+      name,
+      location,
+      landmark,
+      apartmentType,
+      rent,
+      electricityIncluded,
+      priceNegotiable,
+      deposit,
+      numBathrooms,
+      numBalconies,
+      carpetArea,
+      builtUpArea,
+      superBuiltUpArea,
+      otherRooms,
+      furnishing,
+      coveredParking,
+      openParking,
+      totalFloors,
+      propertyOnFloor,
+      ageOfProperty,
+      availableFrom,
+      willingToRentOutTo,
+      pictures,
+      featuredPicture,
+      videoLink,
+      societyName,
+    } = body;
 
-  if (!mongoose.isValidObjectId(_id)) {
-    return res.status(400).json({
-      success: false,
-      toasts: ['Invalid Listing id']
-    });
-  }
-
-  //Validation
-  const { error, value } = checkError(RentLeaseValidation, {
-    name: name,
-    societyName: societyName,
-    location: location,
-    landmark: landmark,
-    apartmentType: apartmentType,
-    rent: rent,
-    electricityIncluded: electricityIncluded,
-    priceNegotiable: priceNegotiable,
-    deposit: deposit,
-    numBathrooms: numBathrooms,
-    numBalconies: numBalconies,
-    carpetArea: carpetArea,
-    builtUpArea: builtUpArea,
-    superBuiltUpArea: superBuiltUpArea,
-    otherRooms: otherRooms,
-    furnishing: furnishing,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    propertyOnFloor: propertyOnFloor,
-    ageOfProperty: ageOfProperty,
-    availableFrom: availableFrom,
-    willingToRentOutTo: willingToRentOutTo,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    videoLink: videoLink
-  });
-
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
-
-  try {
-    const listing = await Listing.findOne({ _id });
-
-    if (
-      req.user.role === CUSTOMER &&
-      req.user._id !== listing.createdBy.toString()
-    ) {
-      return res.status(403).json({
+    if (!mongoose.isValidObjectId(_id)) {
+      return res.status(400).json({
         success: false,
-        toasts: ['Not authorized for this action']
+        toasts: ['Invalid Listing id'],
       });
     }
 
-    await Listing.updateOne(
-      { _id },
-      {
-        $set: {
-          name: name,
-          rentlease: {
-            societyName: societyName,
-            location: location,
-            landmark: landmark,
-            apartmentType: apartmentType,
-            rent: rent,
-            electricityIncluded: electricityIncluded,
-            priceNegotiable: priceNegotiable,
-            deposit: deposit,
-            numBathrooms: numBathrooms,
-            numBalconies: numBalconies,
-            carpetArea: carpetArea,
-            builtUpArea: builtUpArea,
-            superBuiltUpArea: superBuiltUpArea,
-            otherRooms: otherRooms,
-            furnishing: furnishing,
-            coveredParking: coveredParking,
-            openParking: openParking,
-            totalFloors: totalFloors,
-            propertyOnFloor: propertyOnFloor,
-            ageOfProperty: ageOfProperty,
-            availableFrom: availableFrom,
-            willingToRentOutTo: willingToRentOutTo,
-            pictures: pictures,
-            featuredPicture: featuredPicture,
-            videoLink: videoLink
-          }
-        }
-      }
-    );
+    //Validation
+    const { error, value } = checkError(RentLeaseValidation, {
+      name: name,
+      societyName: societyName,
+      location: location,
+      landmark: landmark,
+      apartmentType: apartmentType,
+      rent: rent,
+      electricityIncluded: electricityIncluded,
+      priceNegotiable: priceNegotiable,
+      deposit: deposit,
+      numBathrooms: numBathrooms,
+      numBalconies: numBalconies,
+      carpetArea: carpetArea,
+      builtUpArea: builtUpArea,
+      superBuiltUpArea: superBuiltUpArea,
+      otherRooms: otherRooms,
+      furnishing: furnishing,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      propertyOnFloor: propertyOnFloor,
+      ageOfProperty: ageOfProperty,
+      availableFrom: availableFrom,
+      willingToRentOutTo: willingToRentOutTo,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      videoLink: videoLink,
+    });
 
-    return res.status(200).json({
-      success: true,
-      payload: listing,
-      message: 'Successfully updated property.'
-    });
-  } catch (err) {
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
     }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
-    });
+
+    try {
+      const listing = await Listing.findOne({ _id });
+
+      if (
+        req.user.role === CUSTOMER &&
+        req.user._id !== listing.createdBy.toString()
+      ) {
+        return res.status(403).json({
+          success: false,
+          toasts: ['Not authorized for this action'],
+        });
+      }
+
+      await Listing.updateOne(
+        { _id },
+        {
+          $set: {
+            name: name,
+            rentlease: {
+              societyName: societyName,
+              location: location,
+              landmark: landmark,
+              apartmentType: apartmentType,
+              rent: rent,
+              electricityIncluded: electricityIncluded,
+              priceNegotiable: priceNegotiable,
+              deposit: deposit,
+              numBathrooms: numBathrooms,
+              numBalconies: numBalconies,
+              carpetArea: carpetArea,
+              builtUpArea: builtUpArea,
+              superBuiltUpArea: superBuiltUpArea,
+              otherRooms: otherRooms,
+              furnishing: furnishing,
+              coveredParking: coveredParking,
+              openParking: openParking,
+              totalFloors: totalFloors,
+              propertyOnFloor: propertyOnFloor,
+              ageOfProperty: ageOfProperty,
+              availableFrom: availableFrom,
+              willingToRentOutTo: willingToRentOutTo,
+              pictures: pictures,
+              featuredPicture: featuredPicture,
+              videoLink: videoLink,
+            },
+          },
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        payload: listing,
+        message: 'Successfully updated property.',
+      });
+    } catch (err) {
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred'],
+      });
+    }
   }
-});
+);
 
 /*
  @route   POST listings/add/sellapartment
  @desc    Add new sellapartment property
  @access  CUSTOMER, ADMIN
 */
-router.post('/add/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
-  const { body, user } = req;
-  const {
-    name,
-    societyName,
-    location,
-    landmark,
-    apartmentType,
-    price,
-    pricePerSqFt,
-    allInclusivePrice,
-    taxAndGovtChargesExcluded,
-    priceNegotiable,
-    numBathrooms,
-    numBalconies,
-    carpetArea,
-    builtUpArea,
-    superBuiltUpArea,
-    otherRooms,
-    furnishing,
-    coveredParking,
-    openParking,
-    totalFloors,
-    propertyOnFloor,
-    ageOfProperty,
-    availabilityStatus,
-    possessionBy,
-    ownershipType,
-    usp,
-    pictures,
-    featuredPicture,
-    videoLink
-  } = body;
+router.post(
+  '/add/sellapartment',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      name,
+      societyName,
+      location,
+      landmark,
+      apartmentType,
+      price,
+      pricePerSqFt,
+      allInclusivePrice,
+      taxAndGovtChargesExcluded,
+      priceNegotiable,
+      numBathrooms,
+      numBalconies,
+      carpetArea,
+      builtUpArea,
+      superBuiltUpArea,
+      otherRooms,
+      furnishing,
+      coveredParking,
+      openParking,
+      totalFloors,
+      propertyOnFloor,
+      ageOfProperty,
+      availabilityStatus,
+      possessionBy,
+      ownershipType,
+      usp,
+      pictures,
+      featuredPicture,
+      videoLink,
+    } = body;
 
-  //Validation
-  const { error, value } = checkError(SellApartmentValidation, {
-    name: name,
-    societyName: societyName,
-    location: location,
-    landmark: landmark,
-    apartmentType: apartmentType,
-    price: price,
-    pricePerSqFt: pricePerSqFt,
-    allInclusivePrice: allInclusivePrice,
-    taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
-    priceNegotiable: priceNegotiable,
-    numBathrooms: numBathrooms,
-    numBalconies: numBalconies,
-    carpetArea: carpetArea,
-    builtUpArea: builtUpArea,
-    superBuiltUpArea: superBuiltUpArea,
-    otherRooms: otherRooms,
-    furnishing: furnishing,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    propertyOnFloor: propertyOnFloor,
-    ageOfProperty: ageOfProperty,
-    availabilityStatus: availabilityStatus,
-    possessionBy: possessionBy,
-    ownershipType: ownershipType,
-    usp: usp,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    videoLink: videoLink
-  });
-
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
-
-  try {
-    const listing = new Listing({
-      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
-      createdBy: user._id,
-      type: SELL_APARTMENT,
+    //Validation
+    const { error, value } = checkError(SellApartmentValidation, {
       name: name,
-      sellapartment: {
-        societyName: societyName,
-        location: location,
-        landmark: landmark,
-        apartmentType: apartmentType,
-        price: price,
-        pricePerSqFt: pricePerSqFt,
-        allInclusivePrice: allInclusivePrice,
-        taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
-        priceNegotiable: priceNegotiable,
-        numBathrooms: numBathrooms,
-        numBalconies: numBalconies,
-        carpetArea: carpetArea,
-        builtUpArea: builtUpArea,
-        superBuiltUpArea: superBuiltUpArea,
-        otherRooms: otherRooms,
-        furnishing: furnishing,
-        coveredParking: coveredParking,
-        openParking: openParking,
-        totalFloors: totalFloors,
-        propertyOnFloor: propertyOnFloor,
-        ageOfProperty: ageOfProperty,
-        availabilityStatus: availabilityStatus,
-        possessionBy: possessionBy,
-        ownershipType: ownershipType,
-        usp: usp,
-        pictures: pictures,
-        featuredPicture: featuredPicture,
-        videoLink: videoLink
-      }
+      societyName: societyName,
+      location: location,
+      landmark: landmark,
+      apartmentType: apartmentType,
+      price: price,
+      pricePerSqFt: pricePerSqFt,
+      allInclusivePrice: allInclusivePrice,
+      taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
+      priceNegotiable: priceNegotiable,
+      numBathrooms: numBathrooms,
+      numBalconies: numBalconies,
+      carpetArea: carpetArea,
+      builtUpArea: builtUpArea,
+      superBuiltUpArea: superBuiltUpArea,
+      otherRooms: otherRooms,
+      furnishing: furnishing,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      propertyOnFloor: propertyOnFloor,
+      ageOfProperty: ageOfProperty,
+      availabilityStatus: availabilityStatus,
+      possessionBy: possessionBy,
+      ownershipType: ownershipType,
+      usp: usp,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      videoLink: videoLink,
     });
 
-    await listing.save();
-
-    return res.status(201).json({
-      success: true,
-      payload: listing,
-      message: 'Sell Apartment Property added successfully.'
-    });
-  } catch (err) {
-    console.log(err);
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
     }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
-    });
+
+    try {
+      const listing = new Listing({
+        state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
+        createdBy: user._id,
+        type: SELL_APARTMENT,
+        name: name,
+        sellapartment: {
+          societyName: societyName,
+          location: location,
+          landmark: landmark,
+          apartmentType: apartmentType,
+          price: price,
+          pricePerSqFt: pricePerSqFt,
+          allInclusivePrice: allInclusivePrice,
+          taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
+          priceNegotiable: priceNegotiable,
+          numBathrooms: numBathrooms,
+          numBalconies: numBalconies,
+          carpetArea: carpetArea,
+          builtUpArea: builtUpArea,
+          superBuiltUpArea: superBuiltUpArea,
+          otherRooms: otherRooms,
+          furnishing: furnishing,
+          coveredParking: coveredParking,
+          openParking: openParking,
+          totalFloors: totalFloors,
+          propertyOnFloor: propertyOnFloor,
+          ageOfProperty: ageOfProperty,
+          availabilityStatus: availabilityStatus,
+          possessionBy: possessionBy,
+          ownershipType: ownershipType,
+          usp: usp,
+          pictures: pictures,
+          featuredPicture: featuredPicture,
+          videoLink: videoLink,
+        },
+      });
+
+      await listing.save();
+
+      return res.status(201).json({
+        success: true,
+        payload: listing,
+        message: 'Sell Apartment Property added successfully.',
+      });
+    } catch (err) {
+      console.log(err);
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred'],
+      });
+    }
   }
-});
+);
 
 /*
  @route   PUT listings/update/sellapartment
  @desc    Update existing sellapartment property
  @access  CUSTOMER, ADMIN
 */
-router.put('/update/sellapartment', auth(ADMIN, CUSTOMER), async (req, res) => {
-  const { body, user } = req;
-  const {
-    _id,
-    name,
-    societyName,
-    location,
-    landmark,
-    apartmentType,
-    price,
-    pricePerSqFt,
-    allInclusivePrice,
-    taxAndGovtChargesExcluded,
-    priceNegotiable,
-    numBathrooms,
-    numBalconies,
-    carpetArea,
-    builtUpArea,
-    superBuiltUpArea,
-    otherRooms,
-    furnishing,
-    coveredParking,
-    openParking,
-    totalFloors,
-    propertyOnFloor,
-    ageOfProperty,
-    availabilityStatus,
-    possessionBy,
-    ownershipType,
-    usp,
-    pictures,
-    featuredPicture,
-    videoLink
-  } = body;
+router.put(
+  '/update/sellapartment',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      _id,
+      name,
+      societyName,
+      location,
+      landmark,
+      apartmentType,
+      price,
+      pricePerSqFt,
+      allInclusivePrice,
+      taxAndGovtChargesExcluded,
+      priceNegotiable,
+      numBathrooms,
+      numBalconies,
+      carpetArea,
+      builtUpArea,
+      superBuiltUpArea,
+      otherRooms,
+      furnishing,
+      coveredParking,
+      openParking,
+      totalFloors,
+      propertyOnFloor,
+      ageOfProperty,
+      availabilityStatus,
+      possessionBy,
+      ownershipType,
+      usp,
+      pictures,
+      featuredPicture,
+      videoLink,
+    } = body;
 
-  if (!mongoose.isValidObjectId(_id)) {
-    return res.status(400).json({
-      success: false,
-      toasts: ['Invalid Listing id']
-    });
-  }
-
-  //Validation
-  const { error, value } = checkError(SellApartmentValidation, {
-    name: name,
-    societyName: societyName,
-    location: location,
-    landmark: landmark,
-    apartmentType: apartmentType,
-    price: price,
-    pricePerSqFt: pricePerSqFt,
-    allInclusivePrice: allInclusivePrice,
-    taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
-    priceNegotiable: priceNegotiable,
-    numBathrooms: numBathrooms,
-    numBalconies: numBalconies,
-    carpetArea: carpetArea,
-    builtUpArea: builtUpArea,
-    superBuiltUpArea: superBuiltUpArea,
-    otherRooms: otherRooms,
-    furnishing: furnishing,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    propertyOnFloor: propertyOnFloor,
-    ageOfProperty: ageOfProperty,
-    availabilityStatus: availabilityStatus,
-    possessionBy: possessionBy,
-    ownershipType: ownershipType,
-    usp: usp,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    videoLink: videoLink,
-  });
-
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
-
-  try {
-    let listing = await Listing.findOne({ _id });
-
-    if (
-      req.user.role === CUSTOMER &&
-      req.user._id !== listing.createdBy.toString()
-    ) {
-      return res.status(403).json({
+    if (!mongoose.isValidObjectId(_id)) {
+      return res.status(400).json({
         success: false,
-        toasts: ['Not authorized for this action']
+        toasts: ['Invalid Listing id'],
       });
     }
 
-    await Listing.updateOne(
-      { _id },
-      {
-        $set: {
-          name: name,
-          sellapartment: {
-            societyName: societyName,
-            location: location,
-            landmark: landmark,
-            apartmentType: apartmentType,
-            price: price,
-            pricePerSqFt: pricePerSqFt,
-            allInclusivePrice: allInclusivePrice,
-            taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
-            priceNegotiable: priceNegotiable,
-            numBathrooms: numBathrooms,
-            numBalconies: numBalconies,
-            carpetArea: carpetArea,
-            builtUpArea: builtUpArea,
-            superBuiltUpArea: superBuiltUpArea,
-            otherRooms: otherRooms,
-            furnishing: furnishing,
-            coveredParking: coveredParking,
-            openParking: openParking,
-            totalFloors: totalFloors,
-            propertyOnFloor: propertyOnFloor,
-            ageOfProperty: ageOfProperty,
-            availabilityStatus: availabilityStatus,
-            possessionBy: possessionBy,
-            ownershipType: ownershipType,
-            usp: usp,
-            pictures: pictures,
-            featuredPicture: featuredPicture,
-            videoLink: videoLink
-          }
-        }
-      }
-    );
+    //Validation
+    const { error, value } = checkError(SellApartmentValidation, {
+      name: name,
+      societyName: societyName,
+      location: location,
+      landmark: landmark,
+      apartmentType: apartmentType,
+      price: price,
+      pricePerSqFt: pricePerSqFt,
+      allInclusivePrice: allInclusivePrice,
+      taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
+      priceNegotiable: priceNegotiable,
+      numBathrooms: numBathrooms,
+      numBalconies: numBalconies,
+      carpetArea: carpetArea,
+      builtUpArea: builtUpArea,
+      superBuiltUpArea: superBuiltUpArea,
+      otherRooms: otherRooms,
+      furnishing: furnishing,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      propertyOnFloor: propertyOnFloor,
+      ageOfProperty: ageOfProperty,
+      availabilityStatus: availabilityStatus,
+      possessionBy: possessionBy,
+      ownershipType: ownershipType,
+      usp: usp,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      videoLink: videoLink,
+    });
 
-    return res.status(200).json({
-      success: true,
-      payload: listing,
-      message: 'Successfully updated property.'
-    });
-  } catch (err) {
-    console.log(err);
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
     }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
-    });
+
+    try {
+      let listing = await Listing.findOne({ _id });
+
+      if (
+        req.user.role === CUSTOMER &&
+        req.user._id !== listing.createdBy.toString()
+      ) {
+        return res.status(403).json({
+          success: false,
+          toasts: ['Not authorized for this action'],
+        });
+      }
+
+      await Listing.updateOne(
+        { _id },
+        {
+          $set: {
+            name: name,
+            sellapartment: {
+              societyName: societyName,
+              location: location,
+              landmark: landmark,
+              apartmentType: apartmentType,
+              price: price,
+              pricePerSqFt: pricePerSqFt,
+              allInclusivePrice: allInclusivePrice,
+              taxAndGovtChargesExcluded: taxAndGovtChargesExcluded,
+              priceNegotiable: priceNegotiable,
+              numBathrooms: numBathrooms,
+              numBalconies: numBalconies,
+              carpetArea: carpetArea,
+              builtUpArea: builtUpArea,
+              superBuiltUpArea: superBuiltUpArea,
+              otherRooms: otherRooms,
+              furnishing: furnishing,
+              coveredParking: coveredParking,
+              openParking: openParking,
+              totalFloors: totalFloors,
+              propertyOnFloor: propertyOnFloor,
+              ageOfProperty: ageOfProperty,
+              availabilityStatus: availabilityStatus,
+              possessionBy: possessionBy,
+              ownershipType: ownershipType,
+              usp: usp,
+              pictures: pictures,
+              featuredPicture: featuredPicture,
+              videoLink: videoLink,
+            },
+          },
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        payload: listing,
+        message: 'Successfully updated property.',
+      });
+    } catch (err) {
+      console.log(err);
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred'],
+      });
+    }
   }
-});
+);
 
 /*
  @route   POST listings/add/sellproject
  @desc    Add new sellproject property
  @access  CUSTOMER, ADMIN
 */
-router.post('/add/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
-  const { body, user } = req;
-  const {
-    name,
-    location,
-    landmark,
-    apartmentTypes,
-    units,
-    coveredParking,
-    openParking,
-    totalFloors,
-    ageOfProperty,
-    availabilityStatus,
-    ownershipType,
-    usp,
-    pictures,
-    featuredPicture,
-    brochureLink,
-    videoLink,
-    possessionBy
-  } = body;
+router.post(
+  '/add/sellproject',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      name,
+      location,
+      landmark,
+      apartmentTypes,
+      units,
+      coveredParking,
+      openParking,
+      totalFloors,
+      ageOfProperty,
+      availabilityStatus,
+      ownershipType,
+      usp,
+      pictures,
+      featuredPicture,
+      brochureLink,
+      videoLink,
+      possessionBy,
+    } = body;
 
-  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
-  if(checkDiff.length > 0){
-    checkDiff.forEach(d=>{
-      delete units[d];
-    });
-  }
-
-  let unitsArray = objToArray(units, 'apartmentType');
-
-  //Validation
-  const { error, value } = checkError(SellProjectValidation, {
-    name: name,
-    location: location,
-    landmark: landmark,
-    apartmentTypes: apartmentTypes,
-    units: unitsArray,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    ageOfProperty: ageOfProperty,
-    availabilityStatus: availabilityStatus,
-    ownershipType: ownershipType,
-    usp: usp,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    brochureLink: brochureLink,
-    videoLink: videoLink,
-    possessionBy: possessionBy
-  });
-
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
-
-  try {
-    const listing = new Listing({
-      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
-      createdBy: user._id,
-      type: SELL_PROJECT,
-      name: name,
-      sellproject: {
-        location: location,
-        landmark: landmark,
-        apartmentTypes: apartmentTypes,
-        units: unitsArray,
-        coveredParking: coveredParking,
-        openParking: openParking,
-        totalFloors: totalFloors,
-        ageOfProperty: ageOfProperty,
-        availabilityStatus: availabilityStatus,
-        possessionBy: possessionBy,
-        ownershipType: ownershipType,
-        usp: usp,
-        pictures: pictures,
-        featuredPicture: featuredPicture,
-        brochureLink: brochureLink,
-        videoLink: videoLink
-      }
-    });
-
-    await listing.save();
-
-    return res.status(201).json({
-      success: true,
-      payload: decorateProject(listing),
-      message: 'Sell Project Property added successfully.'
-    });
-  } catch (err) {
-    console.log(err);
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
+    const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+    if (checkDiff.length > 0) {
+      checkDiff.forEach((d) => {
+        delete units[d];
+      });
     }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
+
+    let unitsArray = objToArray(units, 'apartmentType');
+
+    //Validation
+    const { error, value } = checkError(SellProjectValidation, {
+      name: name,
+      location: location,
+      landmark: landmark,
+      apartmentTypes: apartmentTypes,
+      units: unitsArray,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      ageOfProperty: ageOfProperty,
+      availabilityStatus: availabilityStatus,
+      ownershipType: ownershipType,
+      usp: usp,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      brochureLink: brochureLink,
+      videoLink: videoLink,
+      possessionBy: possessionBy,
     });
+
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
+    }
+
+    try {
+      const listing = new Listing({
+        state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
+        createdBy: user._id,
+        type: SELL_PROJECT,
+        name: name,
+        sellproject: {
+          location: location,
+          landmark: landmark,
+          apartmentTypes: apartmentTypes,
+          units: unitsArray,
+          coveredParking: coveredParking,
+          openParking: openParking,
+          totalFloors: totalFloors,
+          ageOfProperty: ageOfProperty,
+          availabilityStatus: availabilityStatus,
+          possessionBy: possessionBy,
+          ownershipType: ownershipType,
+          usp: usp,
+          pictures: pictures,
+          featuredPicture: featuredPicture,
+          brochureLink: brochureLink,
+          videoLink: videoLink,
+        },
+      });
+
+      await listing.save();
+
+      return res.status(201).json({
+        success: true,
+        payload: decorateProject(listing),
+        message: 'Sell Project Property added successfully.',
+      });
+    } catch (err) {
+      console.log(err);
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred'],
+      });
+    }
   }
-});
+);
 
 /*
  @route   PUT listings/add/sellproject
  @desc    Update existing sellproject property
  @access  CUSTOMER, ADMIN
 */
-router.put('/update/sellproject', auth(ADMIN, CUSTOMER), async (req, res) => {
-  const { body, user } = req;
-  const {
-    _id,
-    name,
-    location,
-    landmark,
-    apartmentTypes,
-    units,
-    coveredParking,
-    openParking,
-    totalFloors,
-    ageOfProperty,
-    availabilityStatus,
-    ownershipType,
-    usp,
-    pictures,
-    featuredPicture,
-    brochureLink,
-    videoLink,
-    possessionBy
-  } = body;
+router.put(
+  '/update/sellproject',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      _id,
+      name,
+      location,
+      landmark,
+      apartmentTypes,
+      units,
+      coveredParking,
+      openParking,
+      totalFloors,
+      ageOfProperty,
+      availabilityStatus,
+      ownershipType,
+      usp,
+      pictures,
+      featuredPicture,
+      brochureLink,
+      videoLink,
+      possessionBy,
+    } = body;
 
-  const checkDiff = _.difference(Object.keys(units), apartmentTypes);
-  if (checkDiff.length > 0) {
-    checkDiff.forEach((d) => {
-      delete units[d];
-    });
-  }
-
-  let unitsArray = objToArray(units, 'apartmentType');
-
-  if (!mongoose.isValidObjectId(_id)) {
-    return res.status(400).json({
-      success: false,
-      toasts: ['Invalid Listing id']
-    });
-  }
-
-  //Validation
-  const { error, value } = checkError(SellProjectValidation, {
-    name: name,
-    location: location,
-    landmark: landmark,
-    apartmentTypes: apartmentTypes,
-    units: unitsArray,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    ageOfProperty: ageOfProperty,
-    availabilityStatus: availabilityStatus,
-    ownershipType: ownershipType,
-    usp: usp,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    brochureLink: brochureLink,
-    videoLink: videoLink,
-    possessionBy: possessionBy
-  });
-
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
-
-  try {
-    console.log(_id);
-    let listing = await Listing.findOne({ _id });
-
-    if (!listing) {
-      return res.status(404).json({
-        success: false,
-        toasts: ['Listing with the given listingId was not found.']
+    const checkDiff = _.difference(Object.keys(units), apartmentTypes);
+    if (checkDiff.length > 0) {
+      checkDiff.forEach((d) => {
+        delete units[d];
       });
     }
 
-    if (
-      req.user.role === CUSTOMER &&
-      req.user._id !== listing.createdBy.toString()
-    ) {
-      return res.status(403).json({
+    let unitsArray = objToArray(units, 'apartmentType');
+
+    if (!mongoose.isValidObjectId(_id)) {
+      return res.status(400).json({
         success: false,
-        toasts: ['Not authorized for this action']
+        toasts: ['Invalid Listing id'],
       });
     }
 
-    await Listing.updateOne(
-      { _id },
-      {
-        $set: {
-          name: name,
-          sellproject: {
-            location: location,
-            landmark: landmark,
-            apartmentTypes: apartmentTypes,
-            units: unitsArray,
-            coveredParking: coveredParking,
-            openParking: openParking,
-            totalFloors: totalFloors,
-            ageOfProperty: ageOfProperty,
-            availabilityStatus: availabilityStatus,
-            possessionBy: possessionBy,
-            ownershipType: ownershipType,
-            usp: usp,
-            pictures: pictures,
-            featuredPicture: featuredPicture,
-            brochureLink: brochureLink,
-            videoLink: videoLink
-          }
-        }
+    //Validation
+    const { error, value } = checkError(SellProjectValidation, {
+      name: name,
+      location: location,
+      landmark: landmark,
+      apartmentTypes: apartmentTypes,
+      units: unitsArray,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      ageOfProperty: ageOfProperty,
+      availabilityStatus: availabilityStatus,
+      ownershipType: ownershipType,
+      usp: usp,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      brochureLink: brochureLink,
+      videoLink: videoLink,
+      possessionBy: possessionBy,
+    });
+
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
+    }
+
+    try {
+      console.log(_id);
+      let listing = await Listing.findOne({ _id });
+
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          toasts: ['Listing with the given listingId was not found.'],
+        });
       }
-    );
 
-    return res.status(200).json({
-      success: true,
-      payload: listing,
-      message: 'Successfully updated property.'
-    });
-  } catch (err) {
-    console.log(err);
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
+      if (
+        req.user.role === CUSTOMER &&
+        req.user._id !== listing.createdBy.toString()
+      ) {
+        return res.status(403).json({
+          success: false,
+          toasts: ['Not authorized for this action'],
+        });
+      }
+
+      await Listing.updateOne(
+        { _id },
+        {
+          $set: {
+            name: name,
+            sellproject: {
+              location: location,
+              landmark: landmark,
+              apartmentTypes: apartmentTypes,
+              units: unitsArray,
+              coveredParking: coveredParking,
+              openParking: openParking,
+              totalFloors: totalFloors,
+              ageOfProperty: ageOfProperty,
+              availabilityStatus: availabilityStatus,
+              possessionBy: possessionBy,
+              ownershipType: ownershipType,
+              usp: usp,
+              pictures: pictures,
+              featuredPicture: featuredPicture,
+              brochureLink: brochureLink,
+              videoLink: videoLink,
+            },
+          },
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        payload: listing,
+        message: 'Successfully updated property.',
+      });
+    } catch (err) {
+      console.log(err);
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
+      return res.status(500).json({
+        success: false,
+        toasts: ['Server error occurred'],
+      });
     }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
-    });
   }
-});
+);
 
 // @route   DELETE listings/delete
 // @desc    To delete a existing property
