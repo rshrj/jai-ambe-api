@@ -98,32 +98,75 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
   }
 
   try {
-    let listing = await CallBackRequest.findById(callbackId);
+    let callback = await CallBackRequest.findById(callbackId);
 
-    if (!listing) {
+    if (!callback) {
       return res.status(404).json({
         success: false,
         toasts: ['Callback Request with the given callbackId was not found.'],
       });
     }
 
-    let previousState = listing.state;
+    let previousState = callback.state;
 
-    listing = await CallBackRequest.findByIdAndUpdate(
+    callback = await CallBackRequest.findByIdAndUpdate(
       callbackId,
       { state: state },
       { new: true }
     );
 
-    if (previousState == listing.state){
+    if (previousState == callback.state){
       return res.json({success:true});
     } else {
       return res.status(200).json({
         success: true,
-        payload: listing,
+        payload: callback,
         message: `Callback request state changed successfully.`,
       });
     }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
+    });
+  }
+});
+
+
+// @route   DELETE callbackrequests/delete
+// @desc    To delete a callback request.
+// @access  ADMIN
+router.delete('/delete', auth(ADMIN), async (req, res) => {
+  const { callbackId } = req.body;
+
+  if (!mongoose.isValidObjectId(callbackId)) {
+    return res.status(400).json({
+      success: false,
+      errors: { callbackId: 'Invalid listingId provided.' },
+    });
+  }
+
+  try {
+    let callback = await CallBackRequest.findById(callbackId);
+
+    if (!callback) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Callback Request with the given callbackId was not found.'],
+      });
+    }
+
+    callback = await CallBackRequest.findByIdAndDelete(
+      callbackId
+    );
+
+      return res.status(200).json({
+        success: true,
+        payload: callback,
+        message: `Callback request deleted successfully.`,
+      });
+    
   } catch (err) {
     console.log(err);
     return res.status(500).json({
