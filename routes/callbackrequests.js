@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const momemt = require('moment');
 
 const CallBackRequest = require('../models/CallBackRequest');
 const {
@@ -9,12 +10,14 @@ const checkError = require('../utils/error/checkError');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const router = express.Router();
+const sendMail = require('../utils/mailing/sendmail');
 
 /*
   All @routes
   =>   GET callbackrequests/all
   =>   POST callbackrequests/new
   =>   PUT callbackrequests/updateState
+  =>   DELETE callbackrequests/delete
 */
 
 
@@ -60,6 +63,19 @@ router.post('/new', async (req, res) => {
     cbreq.fromIp = req.ip;
 
     await cbreq.save();
+
+    await sendMail({
+      to: process.env.ADMIN_EMAIL,
+      from: process.env.SMTPUSER,
+      subject: 'Received new callback request',
+      template: 'newCallbackRequest',
+      templateVars: {
+        name: cbreq.name,
+        phone: cbreq.phone,
+        message: cbreq.message,
+        date: momemt(cbreq.createdAt).format('DD/MM/YYYY hh:mm:ss A')
+      }
+    });
 
     return res.json({
       success: true,

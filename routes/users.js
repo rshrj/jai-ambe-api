@@ -141,6 +141,7 @@ router.post('/signup', async (req, res, next) => {
         verificationLink: `${uiPath}/verifyToken/${newUser.verificationToken}`,
       },
     });
+    // console.log(`${uiPath}/verifyToken/${newUser.verificationToken}`);
 
     const token = newUser.generateAuthToken();
 

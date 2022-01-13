@@ -181,6 +181,7 @@ router.post('/forgotpassword', async (req, res) => {
         verificationLink: `${uiPath}/forgotpassword?token=${user.verificationToken}`,
       },
     });
+    // console.log(`${uiPath}/forgotpassword?token=${user.verificationToken}`);
 
     return res.json({
       success: true,

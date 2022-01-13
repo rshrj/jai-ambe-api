@@ -2,6 +2,7 @@ const router = require('express').Router();
 const mongoose = require('mongoose');
 const FuzzySearch = require('fuzzy-search');
 const _ = require('lodash');
+const momemt = require('moment');
 
 const Listing = require('../models/Listing');
 const {
@@ -16,12 +17,42 @@ const {
   ParticularListingValidation
 } = require('../utils/validation/listing');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
+const User = require('../models/User');
 const auth = require('../utils/auth/index');
 const checkVerified = require('../utils/auth/checkVerified');
 const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
 const { findAndAttach } = require('../utils/uploads/attachUpload');
+const sendMail = require('../utils/mailing/sendmail');
+
+async function onListingSubmittedEmail (id){
+  const user = await User.findById(id);
+  let customerName = user.name.first + ' ' + user.name.last;
+
+  //Email to Customer
+  await sendMail({
+    to: user.email,
+    from: process.env.SMTPUSER,
+    subject: 'Your listing has been successfully submitted!',
+    template: 'newListingCustomer',
+    templateVars: {
+      name: customerName,
+    },
+  });
+
+  //Email to Admin
+  await sendMail({
+    to: process.env.ADMIN_EMAIL,
+    from: process.env.SMTPUSER,
+    subject: 'Approval required for new listing',
+    template: 'newListingAdmin',
+    templateVars: {
+      name: customerName,
+    },
+  });
+
+};
 
 /*
   All @routes
@@ -523,6 +554,8 @@ router.post('/add/rentlease',[ auth(ADMIN, CUSTOMER), checkVerified], async (req
 
     await listing.save();
 
+    await onListingSubmittedEmail(user._id);
+
     return res.status(201).json({
       success: true,
       payload: listing,
@@ -805,6 +838,8 @@ router.post(
 
       await listing.save();
 
+       await onListingSubmittedEmail(user._id);
+
       return res.status(201).json({
         success: true,
         payload: listing,
@@ -1072,6 +1107,8 @@ router.post(
 
       await listing.save();
 
+       await onListingSubmittedEmail(user._id);
+
       return res.status(201).json({
         success: true,
         payload: decorateProject(listing),
@@ -1318,6 +1355,20 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
       { state: state },
       { new: true }
     );
+
+    if(state == APPROVED){
+       const user = await User.findById(listing.createdBy);
+       let customerName = user.name.first + ' ' + user.name.last;
+      await sendMail({
+        to: user.email,
+        from: process.env.SMTPUSER,
+        subject: 'Your listing is live!',
+        template: 'approvedListing',
+        templateVars: {
+          name: customerName,
+        },
+      });
+    }
 
     return res.status(200).json({
       success: true,
