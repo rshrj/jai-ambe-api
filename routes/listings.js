@@ -654,6 +654,15 @@ router.put(
     }
 
     try {
+       const foundPictures = await findAndAttach(pictures);
+
+       if (!foundPictures) {
+         return res.status(500).json({
+           success: false,
+           toasts: ['Server was unable to process pictures'],
+         });
+       }
+
       const listing = await Listing.findOne({ _id });
 
       if (
@@ -799,6 +808,15 @@ router.post(
     }
 
     try {
+       const foundPictures = await findAndAttach(pictures);
+
+       if (!foundPictures) {
+         return res.status(500).json({
+           success: false,
+           toasts: ['Server was unable to process pictures'],
+         });
+       }
+
       const listing = new Listing({
         state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
         createdBy: user._id,
@@ -946,6 +964,15 @@ router.put(
     }
 
     try {
+       const foundPictures = await findAndAttach(pictures);
+
+       if (!foundPictures) {
+         return res.status(500).json({
+           success: false,
+           toasts: ['Server was unable to process pictures'],
+         });
+       }
+
       let listing = await Listing.findOne({ _id });
 
       if (
@@ -1080,6 +1107,15 @@ router.post(
     }
 
     try {
+       const foundPictures = await findAndAttach(pictures);
+
+       if (!foundPictures) {
+         return res.status(500).json({
+           success: false,
+           toasts: ['Server was unable to process pictures'],
+         });
+       }
+
       const listing = new Listing({
         state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
         createdBy: user._id,
@@ -1200,6 +1236,15 @@ router.put(
     }
 
     try {
+       const foundPictures = await findAndAttach(pictures);
+
+       if (!foundPictures) {
+         return res.status(500).json({
+           success: false,
+           toasts: ['Server was unable to process pictures'],
+         });
+       }
+       
       console.log(_id);
       let listing = await Listing.findOne({ _id });
 
