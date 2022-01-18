@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const momemt = require('moment');
+const { format } = require('date-fns');
 
 const CallBackRequest = require('../models/CallBackRequest');
 const {
@@ -73,7 +73,7 @@ router.post('/new', async (req, res) => {
         name: cbreq.name,
         phone: cbreq.phone,
         message: cbreq.message,
-        date: momemt(cbreq.createdAt).format('DD/MM/YYYY hh:mm:ss A')
+        date: format(cbreq.createdAt, 'dd/MM/yyyy KK:mm:ss a')
       }
     });
 

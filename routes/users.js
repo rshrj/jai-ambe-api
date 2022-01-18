@@ -147,7 +147,7 @@ router.post('/signup', async (req, res, next) => {
 
     return res.json({
       success: true,
-      payload: token,
+      // payload: token,
       message: 'Successfully created an account. Please verify your email'
     });
   } catch (err) {

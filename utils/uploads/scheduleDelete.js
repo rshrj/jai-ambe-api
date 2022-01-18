@@ -33,7 +33,6 @@ const scheduleDelete = (uploadId) => {
     }.bind(null, uploadId)
   );
 
-  console.log(job);
 };
 
 const deleteStrayUploads = async () => {

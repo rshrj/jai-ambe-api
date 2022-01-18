@@ -17,6 +17,7 @@ const uiPath = process.env.UI_BASEURL || 'http://localhost:3000';
 /* 
   All @routes
   =>   POST auth/login
+  =>   POST auth/resendToken
   =>   GET auth/verify/:token
   =>   POST auth/forgotpassword
   =>   GET auth/forgotpassword/:token
@@ -127,6 +128,75 @@ router.get('/verify/:token', async (req, res) => {
   }
 });
 
+
+// @route   POST auth/resendToken
+// @desc    To resend email verification mail
+// @access  Public
+router.post('/resendToken', async (req, res) => {
+  const { email } = req.body;
+
+  const { error, value } = checkError(
+    Joi.object({
+      email: Joi.string().trim().email().required().label('Email'),
+    }),
+    {
+      email,
+    }
+  );
+
+  if (error) {
+    return res.status(400).json({ success: false, errors: error });
+  }
+
+
+  try {
+    let user = await User.findOne({ email: validator.normalizeEmail(email) });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        toasts: ['User does not exist. Please sign up.'],
+      });
+    }
+    
+    if (user && user.verificationToken == '') {
+      return res.status(400).json({
+        success: false,
+        toasts: ['Your account is already verified. Please login.'],
+      });
+    }
+
+    user.verificationToken = nanoid(128);
+    await user.save();
+
+    await sendMail({
+      to: user.email,
+      from: process.env.SMTPUSER,
+      subject: 'Welcome to Jai Ambe Homes. Please verify your email',
+      template: 'emailVerification',
+      templateVars: {
+        name: user.name.first,
+        verificationLink: `${uiPath}/verifyToken/${user.verificationToken}`,
+      },
+    });
+
+    // console.log(`${uiPath}/verifyToken/${user.verificationToken}`);
+
+    return res.json({
+      success: true,
+      // payload: user,
+      message: 'Email resent successfully. Please check your email.',
+    });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
+    });
+  }
+});
+
 // @route   POST auth/forgotpassword
 // @desc    To initial forgotpassword
 // @access  Public
@@ -157,15 +227,16 @@ router.post('/forgotpassword', async (req, res) => {
       });
     }
 
-    if (user.verificationToken !== '') {
-      return res.status(400).json({
-        success: false,
-        toasts: [
-          'A request already exists. Please check your email for instructions',
-        ],
-        errors: { email: 'Check your email' },
-      });
-    }
+   
+    // if (user.verificationToken !== '') {
+    //   return res.status(400).json({
+    //     success: false,
+    //     toasts: [
+    //       'A request already exists. Please check your email for instructions',
+    //     ],
+    //     errors: { email: 'Check your email' },
+    //   });
+    // }
 
     let verificationToken = nanoid(64);
     user.verificationToken = verificationToken;

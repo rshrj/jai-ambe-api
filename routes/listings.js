@@ -2,7 +2,6 @@ const router = require('express').Router();
 const mongoose = require('mongoose');
 const FuzzySearch = require('fuzzy-search');
 const _ = require('lodash');
-const momemt = require('moment');
 
 const Listing = require('../models/Listing');
 const {
@@ -508,7 +507,7 @@ router.post('/add/rentlease',[ auth(ADMIN, CUSTOMER), checkVerified], async (req
     return res.status(400).json({ success: false, errors: error });
   }
 
-  try {
+  try { 
     const foundPictures = await findAndAttach(pictures);
 
     if (!foundPictures) {
@@ -654,16 +653,32 @@ router.put(
     }
 
     try {
-       const foundPictures = await findAndAttach(pictures);
-
-       if (!foundPictures) {
-         return res.status(500).json({
-           success: false,
-           toasts: ['Server was unable to process pictures'],
-         });
-       }
-
       const listing = await Listing.findOne({ _id });
+
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          toasts: ['Listing with the given listingId was not found.']
+        });
+      }
+
+      const newPictures = _.difference([...pictures], [...listing.rentlease.pictures]);
+
+      const oldPictures = _.difference(
+        [...listing.rentlease.pictures],
+        [...pictures]
+      );
+
+      if(newPictures){
+        const foundPictures = await findAndAttach(newPictures);
+ 
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures'],
+          });
+        }
+      }
 
       if (
         req.user.role === CUSTOMER &&
@@ -717,6 +732,7 @@ router.put(
         message: 'Successfully updated property.',
       });
     } catch (err) {
+      console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
         console.log(err.message.split(':')[2]);
       }
@@ -964,16 +980,35 @@ router.put(
     }
 
     try {
-       const foundPictures = await findAndAttach(pictures);
+       const listing = await Listing.findOne({ _id });
 
-       if (!foundPictures) {
-         return res.status(500).json({
+       if (!listing) {
+         return res.status(404).json({
            success: false,
-           toasts: ['Server was unable to process pictures'],
+           toasts: ['Listing with the given listingId was not found.'],
          });
        }
 
-      let listing = await Listing.findOne({ _id });
+       const newPictures = _.difference(
+         [...pictures],
+         [...listing.sellapartment.pictures]
+       );
+
+       const oldPictures = _.difference(
+         [...listing.sellapartment.pictures],
+         [...pictures]
+       );
+
+       if (newPictures) {
+         const foundPictures = await findAndAttach(newPictures);
+
+         if (!foundPictures) {
+           return res.status(500).json({
+             success: false,
+             toasts: ['Server was unable to process pictures'],
+           });
+         }
+       }
 
       if (
         req.user.role === CUSTOMER &&
@@ -1236,24 +1271,35 @@ router.put(
     }
 
     try {
-       const foundPictures = await findAndAttach(pictures);
+       const listing = await Listing.findOne({ _id });
 
-       if (!foundPictures) {
-         return res.status(500).json({
+       if (!listing) {
+         return res.status(404).json({
            success: false,
-           toasts: ['Server was unable to process pictures'],
+           toasts: ['Listing with the given listingId was not found.'],
          });
        }
-       
-      console.log(_id);
-      let listing = await Listing.findOne({ _id });
 
-      if (!listing) {
-        return res.status(404).json({
-          success: false,
-          toasts: ['Listing with the given listingId was not found.'],
-        });
-      }
+       const newPictures = _.difference(
+         [...pictures],
+         [...listing.sellproject.pictures]
+       );
+
+       const oldPictures = _.difference(
+         [...listing.sellproject.pictures],
+         [...pictures]
+       );
+
+       if (newPictures) {
+         const foundPictures = await findAndAttach(newPictures);
+
+         if (!foundPictures) {
+           return res.status(500).json({
+             success: false,
+             toasts: ['Server was unable to process pictures'],
+           });
+         }
+       }
 
       if (
         req.user.role === CUSTOMER &&
