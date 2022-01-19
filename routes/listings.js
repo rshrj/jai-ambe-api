@@ -140,7 +140,10 @@ router.post('/fuzzy', async (req, res) => {
     );
 
     const searcher = new FuzzySearch(listings, fields);
-    listings = searcher.search(query);
+    const foundListings = searcher.search(query);
+    if (foundListings.length > 0) {
+      listings = foundListings;
+    }
 
     return res.status(200).json({
       success: true,
