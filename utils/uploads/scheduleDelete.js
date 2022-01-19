@@ -3,8 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const Upload = require('../../models/Upload');
-
-const uploadDirectory = path.join(__dirname, '..', '..', 'public', 'uploaded');
+const uploadDirectory = require('./checkUploadFolder');
 
 const scheduleDelete = (uploadId) => {
   //Calculating 30 min later time.

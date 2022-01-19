@@ -22,7 +22,10 @@ const checkVerified = require('../utils/auth/checkVerified');
 const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
-const { findAndAttach } = require('../utils/uploads/attachUpload');
+const {
+  findAndAttach,
+  findAndDelete,
+} = require('../utils/uploads/attachUpload');
 const sendMail = require('../utils/mailing/sendmail');
 
 async function onListingSubmittedEmail (id){
@@ -669,9 +672,20 @@ router.put(
         [...pictures]
       );
 
-      if(newPictures){
+      if(newPictures.length > 0){
         const foundPictures = await findAndAttach(newPictures);
  
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures'],
+          });
+        }
+      }
+
+      if (oldPictures.length > 0) {
+        const foundPictures = await findAndDelete(oldPictures);
+
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
@@ -999,16 +1013,28 @@ router.put(
          [...pictures]
        );
 
-       if (newPictures) {
-         const foundPictures = await findAndAttach(newPictures);
+         if (newPictures.length > 0) {
+           const foundPictures = await findAndAttach(newPictures);
 
-         if (!foundPictures) {
-           return res.status(500).json({
-             success: false,
-             toasts: ['Server was unable to process pictures'],
-           });
+           if (!foundPictures) {
+             return res.status(500).json({
+               success: false,
+               toasts: ['Server was unable to process pictures'],
+             });
+           }
          }
-       }
+
+         if (oldPictures.length > 0) {
+           const foundPictures = await findAndDelete(oldPictures);
+
+           if (!foundPictures) {
+             return res.status(500).json({
+               success: false,
+               toasts: ['Server was unable to process pictures'],
+             });
+           }
+         }
+
 
       if (
         req.user.role === CUSTOMER &&
@@ -1290,16 +1316,28 @@ router.put(
          [...pictures]
        );
 
-       if (newPictures) {
-         const foundPictures = await findAndAttach(newPictures);
+         if (newPictures.length > 0) {
+           const foundPictures = await findAndAttach(newPictures);
 
-         if (!foundPictures) {
-           return res.status(500).json({
-             success: false,
-             toasts: ['Server was unable to process pictures'],
-           });
+           if (!foundPictures) {
+             return res.status(500).json({
+               success: false,
+               toasts: ['Server was unable to process pictures'],
+             });
+           }
          }
-       }
+
+         if (oldPictures.length > 0) {
+           const foundPictures = await findAndDelete(oldPictures);
+
+           if (!foundPictures) {
+             return res.status(500).json({
+               success: false,
+               toasts: ['Server was unable to process pictures'],
+             });
+           }
+         }
+
 
       if (
         req.user.role === CUSTOMER &&
