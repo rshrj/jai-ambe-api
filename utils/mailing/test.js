@@ -1,4 +1,4 @@
-const sendMail = require('./utils/mailing/sendmail');
+const sendMail = require('./sendmail');
 
 (async () => {
   await sendMail({

@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { format } = require('date-fns');
 
 const CallBackRequest = require('../models/CallBackRequest');
 const {
@@ -9,12 +10,14 @@ const checkError = require('../utils/error/checkError');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const router = express.Router();
+const sendMail = require('../utils/mailing/sendmail');
 
 /*
   All @routes
   =>   GET callbackrequests/all
   =>   POST callbackrequests/new
   =>   PUT callbackrequests/updateState
+  =>   DELETE callbackrequests/delete
 */
 
 
@@ -61,6 +64,19 @@ router.post('/new', async (req, res) => {
 
     await cbreq.save();
 
+    await sendMail({
+      to: process.env.ADMIN_EMAIL,
+      from: process.env.SMTPUSER,
+      subject: 'Received new callback request',
+      template: 'newCallbackRequest',
+      templateVars: {
+        name: cbreq.name,
+        phone: cbreq.phone,
+        message: cbreq.message,
+        date: format(cbreq.createdAt, 'dd/MM/yyyy KK:mm:ss a')
+      }
+    });
+
     return res.json({
       success: true,
       message: 'Call back request made successfully',
@@ -98,32 +114,75 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
   }
 
   try {
-    let listing = await CallBackRequest.findById(callbackId);
+    let callback = await CallBackRequest.findById(callbackId);
 
-    if (!listing) {
+    if (!callback) {
       return res.status(404).json({
         success: false,
         toasts: ['Callback Request with the given callbackId was not found.'],
       });
     }
 
-    let previousState = listing.state;
+    let previousState = callback.state;
 
-    listing = await CallBackRequest.findByIdAndUpdate(
+    callback = await CallBackRequest.findByIdAndUpdate(
       callbackId,
       { state: state },
       { new: true }
     );
 
-    if (previousState == listing.state){
+    if (previousState == callback.state){
       return res.json({success:true});
     } else {
       return res.status(200).json({
         success: true,
-        payload: listing,
+        payload: callback,
         message: `Callback request state changed successfully.`,
       });
     }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      toasts: ['Server error occurred'],
+    });
+  }
+});
+
+
+// @route   DELETE callbackrequests/delete
+// @desc    To delete a callback request.
+// @access  ADMIN
+router.delete('/delete', auth(ADMIN), async (req, res) => {
+  const { callbackId } = req.body;
+
+  if (!mongoose.isValidObjectId(callbackId)) {
+    return res.status(400).json({
+      success: false,
+      errors: { callbackId: 'Invalid listingId provided.' },
+    });
+  }
+
+  try {
+    let callback = await CallBackRequest.findById(callbackId);
+
+    if (!callback) {
+      return res.status(404).json({
+        success: false,
+        toasts: ['Callback Request with the given callbackId was not found.'],
+      });
+    }
+
+    callback = await CallBackRequest.findByIdAndDelete(
+      callbackId
+    );
+
+      return res.status(200).json({
+        success: true,
+        payload: callback,
+        message: `Callback request deleted successfully.`,
+      });
+    
   } catch (err) {
     console.log(err);
     return res.status(500).json({
