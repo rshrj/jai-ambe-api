@@ -8,8 +8,8 @@ const passport = require('passport');
 const cors = require('cors');
 
 // Automatically delete stray uploads every 30 minutes
-const { deleteStrayUploads } = require('./utils/uploads/scheduleDelete');
-deleteStrayUploads();
+// const { deleteStrayUploads } = require('./utils/uploads/scheduleDelete');
+// deleteStrayUploads();
 
 // Connect to MongoDB server
 const connectDB = require('./config/db');

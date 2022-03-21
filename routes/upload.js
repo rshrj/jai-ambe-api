@@ -6,7 +6,6 @@ const auth = require('../utils/auth');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const { nanoid } = require('nanoid');
 const Upload = require('../models/Upload');
-const { scheduleDelete } = require('../utils/uploads/scheduleDelete');
 require('../utils/uploads/checkUploadFolder');
 
 const uploadSettings = {
@@ -37,7 +36,6 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
       .status(400)
       .json({ success: false, toasts: ['Not a valid upload type'] });
   }
-  
 
   //multer settings
   const fileStorage = multer.diskStorage({
@@ -96,7 +94,7 @@ router.post('/:type', auth(CUSTOMER, ADMIN), async (req, res) => {
         });
         await uploadedFile.save();
 
-        scheduleDelete(uploadedFile._id);
+        // scheduleDelete(uploadedFile._id);
 
         return res.json({
           success: true,
