@@ -10,6 +10,7 @@ const User = require('../models/User/User');
 const { ADMIN, CUSTOMER } = require('../models/User/roles');
 const auth = require('../utils/auth');
 const checkError = require('../utils/error/checkError');
+const uiPath = process.env.UI_BASEURL || 'http://localhost:3000';
 
 /*
   All @routes
@@ -137,15 +138,16 @@ router.post('/signup', async (req, res, next) => {
       template: 'emailVerification',
       templateVars: {
         name: newUser.name.first,
-        verificationLink: `${process.env.BASEURL}/auth/verify/${newUser.verificationToken}`
-      }
+        verificationLink: `${uiPath}/verifyToken/${newUser.verificationToken}`,
+      },
     });
+    // console.log(`${uiPath}/verifyToken/${newUser.verificationToken}`);
 
     const token = newUser.generateAuthToken();
 
     return res.json({
       success: true,
-      payload: token,
+      // payload: token,
       message: 'Successfully created an account. Please verify your email'
     });
   } catch (err) {
