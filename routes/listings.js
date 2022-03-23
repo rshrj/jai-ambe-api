@@ -22,13 +22,13 @@ const checkVerified = require('../utils/auth/checkVerified');
 const checkError = require('../utils/error/checkError');
 const objToArray = require('../utils/helpers/objToArray');
 const decorateProject = require('../utils/helpers/decorateProject');
-const {
-  findAndAttach,
-  findAndDelete,
-} = require('../utils/uploads/attachUpload');
+// const {
+//   findAndAttach,
+//   findAndDelete
+// } = require('../utils/uploads/attachUpload');
 const sendMail = require('../utils/mailing/sendmail');
 
-async function onListingSubmittedEmail (id){
+async function onListingSubmittedEmail(id) {
   const user = await User.findById(id);
   let customerName = user.name.first + ' ' + user.name.last;
 
@@ -39,8 +39,8 @@ async function onListingSubmittedEmail (id){
     subject: 'Your listing has been successfully submitted!',
     template: 'newListingCustomer',
     templateVars: {
-      name: customerName,
-    },
+      name: customerName
+    }
   });
 
   //Email to Admin
@@ -50,11 +50,10 @@ async function onListingSubmittedEmail (id){
     subject: 'Approval required for new listing',
     template: 'newListingAdmin',
     templateVars: {
-      name: customerName,
-    },
+      name: customerName
+    }
   });
-
-};
+}
 
 /*
   All @routes
@@ -448,134 +447,138 @@ router.post('/user', auth(ADMIN), async (req, res) => {
  @desc    Add new rentlease property
  @access  CUSTOMER, ADMIN
 */
-router.post('/add/rentlease',[ auth(ADMIN, CUSTOMER), checkVerified], async (req, res) => {
-  const { body, user } = req;
-  const {
-    name,
-    location,
-    landmark,
-    apartmentType,
-    rent,
-    electricityIncluded,
-    priceNegotiable,
-    deposit,
-    numBathrooms,
-    numBalconies,
-    carpetArea,
-    builtUpArea,
-    superBuiltUpArea,
-    otherRooms,
-    furnishing,
-    coveredParking,
-    openParking,
-    totalFloors,
-    propertyOnFloor,
-    ageOfProperty,
-    availableFrom,
-    willingToRentOutTo,
-    pictures,
-    featuredPicture,
-    videoLink,
-    societyName
-  } = body;
+router.post(
+  '/add/rentlease',
+  [auth(ADMIN, CUSTOMER), checkVerified],
+  async (req, res) => {
+    const { body, user } = req;
+    const {
+      name,
+      location,
+      landmark,
+      apartmentType,
+      rent,
+      electricityIncluded,
+      priceNegotiable,
+      deposit,
+      numBathrooms,
+      numBalconies,
+      carpetArea,
+      builtUpArea,
+      superBuiltUpArea,
+      otherRooms,
+      furnishing,
+      coveredParking,
+      openParking,
+      totalFloors,
+      propertyOnFloor,
+      ageOfProperty,
+      availableFrom,
+      willingToRentOutTo,
+      pictures,
+      featuredPicture,
+      videoLink,
+      societyName
+    } = body;
 
-  //Validation
-  const { error, value } = checkError(RentLeaseValidation, {
-    name: name,
-    societyName: societyName,
-    location: location,
-    landmark: landmark,
-    apartmentType: apartmentType,
-    rent: rent,
-    electricityIncluded: electricityIncluded,
-    priceNegotiable: priceNegotiable,
-    deposit: deposit,
-    numBathrooms: numBathrooms,
-    numBalconies: numBalconies,
-    carpetArea: carpetArea,
-    builtUpArea: builtUpArea,
-    superBuiltUpArea: superBuiltUpArea,
-    otherRooms: otherRooms,
-    furnishing: furnishing,
-    coveredParking: coveredParking,
-    openParking: openParking,
-    totalFloors: totalFloors,
-    propertyOnFloor: propertyOnFloor,
-    ageOfProperty: ageOfProperty,
-    availableFrom: availableFrom,
-    willingToRentOutTo: willingToRentOutTo,
-    pictures: pictures,
-    featuredPicture: featuredPicture,
-    videoLink: videoLink
-  });
+    //Validation
+    const { error, value } = checkError(RentLeaseValidation, {
+      name: name,
+      societyName: societyName,
+      location: location,
+      landmark: landmark,
+      apartmentType: apartmentType,
+      rent: rent,
+      electricityIncluded: electricityIncluded,
+      priceNegotiable: priceNegotiable,
+      deposit: deposit,
+      numBathrooms: numBathrooms,
+      numBalconies: numBalconies,
+      carpetArea: carpetArea,
+      builtUpArea: builtUpArea,
+      superBuiltUpArea: superBuiltUpArea,
+      otherRooms: otherRooms,
+      furnishing: furnishing,
+      coveredParking: coveredParking,
+      openParking: openParking,
+      totalFloors: totalFloors,
+      propertyOnFloor: propertyOnFloor,
+      ageOfProperty: ageOfProperty,
+      availableFrom: availableFrom,
+      willingToRentOutTo: willingToRentOutTo,
+      pictures: pictures,
+      featuredPicture: featuredPicture,
+      videoLink: videoLink
+    });
 
-  if (error) {
-    return res.status(400).json({ success: false, errors: error });
-  }
+    if (error) {
+      return res.status(400).json({ success: false, errors: error });
+    }
 
-  try { 
-    const foundPictures = await findAndAttach(pictures);
+    try {
+      // const foundPictures = await findAndAttach(pictures);
 
-    if (!foundPictures) {
+      if (!foundPictures) {
+        return res.status(500).json({
+          success: false,
+          toasts: ['Server was unable to process pictures']
+        });
+      }
+
+      const listing = new Listing({
+        state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
+        createdBy: user._id,
+        type: RENT_LEASE,
+        name: name,
+        rentlease: {
+          societyName: societyName,
+          location: location,
+          landmark: landmark,
+          apartmentType: apartmentType,
+          rent: rent,
+          electricityIncluded: electricityIncluded,
+          priceNegotiable: priceNegotiable,
+          deposit: deposit,
+          numBathrooms: numBathrooms,
+          numBalconies: numBalconies,
+          carpetArea: carpetArea,
+          builtUpArea: builtUpArea,
+          superBuiltUpArea: superBuiltUpArea,
+          otherRooms: otherRooms,
+          furnishing: furnishing,
+          coveredParking: coveredParking,
+          openParking: openParking,
+          totalFloors: totalFloors,
+          propertyOnFloor: propertyOnFloor,
+          ageOfProperty: ageOfProperty,
+          availableFrom: availableFrom,
+          willingToRentOutTo: willingToRentOutTo,
+          pictures: pictures,
+          featuredPicture: featuredPicture,
+          videoLink: videoLink
+        }
+      });
+
+      await listing.save();
+
+      await onListingSubmittedEmail(user._id);
+
+      return res.status(201).json({
+        success: true,
+        payload: listing,
+        message: 'Rent/Lease Property added successfully.'
+      });
+    } catch (err) {
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.log(err.message.split(':')[2]);
+      }
       return res.status(500).json({
         success: false,
-        toasts: ['Server was unable to process pictures']
+        toasts: ['Server error occurred']
       });
     }
-
-    const listing = new Listing({
-      state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
-      createdBy: user._id,
-      type: RENT_LEASE,
-      name: name,
-      rentlease: {
-        societyName: societyName,
-        location: location,
-        landmark: landmark,
-        apartmentType: apartmentType,
-        rent: rent,
-        electricityIncluded: electricityIncluded,
-        priceNegotiable: priceNegotiable,
-        deposit: deposit,
-        numBathrooms: numBathrooms,
-        numBalconies: numBalconies,
-        carpetArea: carpetArea,
-        builtUpArea: builtUpArea,
-        superBuiltUpArea: superBuiltUpArea,
-        otherRooms: otherRooms,
-        furnishing: furnishing,
-        coveredParking: coveredParking,
-        openParking: openParking,
-        totalFloors: totalFloors,
-        propertyOnFloor: propertyOnFloor,
-        ageOfProperty: ageOfProperty,
-        availableFrom: availableFrom,
-        willingToRentOutTo: willingToRentOutTo,
-        pictures: pictures,
-        featuredPicture: featuredPicture,
-        videoLink: videoLink
-      }
-    });
-
-    await listing.save();
-
-    await onListingSubmittedEmail(user._id);
-
-    return res.status(201).json({
-      success: true,
-      payload: listing,
-      message: 'Rent/Lease Property added successfully.'
-    });
-  } catch (err) {
-    if (err instanceof mongoose.Error.ValidationError) {
-      console.log(err.message.split(':')[2]);
-    }
-    return res.status(500).json({
-      success: false,
-      toasts: ['Server error occurred']
-    });
   }
-});
+);
 
 /*
  @route   PUT listings/update/rentlease
@@ -614,13 +617,13 @@ router.put(
       pictures,
       featuredPicture,
       videoLink,
-      societyName,
+      societyName
     } = body;
 
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id'],
+        toasts: ['Invalid Listing id']
       });
     }
 
@@ -651,7 +654,7 @@ router.put(
       willingToRentOutTo: willingToRentOutTo,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink,
+      videoLink: videoLink
     });
 
     if (error) {
@@ -668,31 +671,34 @@ router.put(
         });
       }
 
-      const newPictures = _.difference([...pictures], [...listing.rentlease.pictures]);
+      const newPictures = _.difference(
+        [...pictures],
+        [...listing.rentlease.pictures]
+      );
 
       const oldPictures = _.difference(
         [...listing.rentlease.pictures],
         [...pictures]
       );
 
-      if(newPictures.length > 0){
-        const foundPictures = await findAndAttach(newPictures);
- 
+      if (newPictures.length > 0) {
+        // const foundPictures = await findAndAttach(newPictures);
+
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures'],
+            toasts: ['Server was unable to process pictures']
           });
         }
       }
 
       if (oldPictures.length > 0) {
-        const foundPictures = await findAndDelete(oldPictures);
+        // const foundPictures = await findAndDelete(oldPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures'],
+            toasts: ['Server was unable to process pictures']
           });
         }
       }
@@ -703,7 +709,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action'],
+          toasts: ['Not authorized for this action']
         });
       }
 
@@ -737,16 +743,16 @@ router.put(
               willingToRentOutTo: willingToRentOutTo,
               pictures: pictures,
               featuredPicture: featuredPicture,
-              videoLink: videoLink,
-            },
-          },
+              videoLink: videoLink
+            }
+          }
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.',
+        message: 'Successfully updated property.'
       });
     } catch (err) {
       console.log(err);
@@ -755,7 +761,7 @@ router.put(
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred'],
+        toasts: ['Server error occurred']
       });
     }
   }
@@ -800,7 +806,7 @@ router.post(
       usp,
       pictures,
       featuredPicture,
-      videoLink,
+      videoLink
     } = body;
 
     //Validation
@@ -833,7 +839,7 @@ router.post(
       usp: usp,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink,
+      videoLink: videoLink
     });
 
     if (error) {
@@ -841,14 +847,14 @@ router.post(
     }
 
     try {
-       const foundPictures = await findAndAttach(pictures);
+      // const foundPictures = await findAndAttach(pictures);
 
-       if (!foundPictures) {
-         return res.status(500).json({
-           success: false,
-           toasts: ['Server was unable to process pictures'],
-         });
-       }
+      if (!foundPictures) {
+        return res.status(500).json({
+          success: false,
+          toasts: ['Server was unable to process pictures']
+        });
+      }
 
       const listing = new Listing({
         state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
@@ -883,18 +889,18 @@ router.post(
           usp: usp,
           pictures: pictures,
           featuredPicture: featuredPicture,
-          videoLink: videoLink,
-        },
+          videoLink: videoLink
+        }
       });
 
       await listing.save();
 
-       await onListingSubmittedEmail(user._id);
+      await onListingSubmittedEmail(user._id);
 
       return res.status(201).json({
         success: true,
         payload: listing,
-        message: 'Sell Apartment Property added successfully.',
+        message: 'Sell Apartment Property added successfully.'
       });
     } catch (err) {
       console.log(err);
@@ -903,7 +909,7 @@ router.post(
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred'],
+        toasts: ['Server error occurred']
       });
     }
   }
@@ -949,13 +955,13 @@ router.put(
       usp,
       pictures,
       featuredPicture,
-      videoLink,
+      videoLink
     } = body;
 
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id'],
+        toasts: ['Invalid Listing id']
       });
     }
 
@@ -989,7 +995,7 @@ router.put(
       usp: usp,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink,
+      videoLink: videoLink
     });
 
     if (error) {
@@ -997,47 +1003,46 @@ router.put(
     }
 
     try {
-       const listing = await Listing.findOne({ _id });
+      const listing = await Listing.findOne({ _id });
 
-       if (!listing) {
-         return res.status(404).json({
-           success: false,
-           toasts: ['Listing with the given listingId was not found.'],
-         });
-       }
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          toasts: ['Listing with the given listingId was not found.']
+        });
+      }
 
-       const newPictures = _.difference(
-         [...pictures],
-         [...listing.sellapartment.pictures]
-       );
+      const newPictures = _.difference(
+        [...pictures],
+        [...listing.sellapartment.pictures]
+      );
 
-       const oldPictures = _.difference(
-         [...listing.sellapartment.pictures],
-         [...pictures]
-       );
+      const oldPictures = _.difference(
+        [...listing.sellapartment.pictures],
+        [...pictures]
+      );
 
-         if (newPictures.length > 0) {
-           const foundPictures = await findAndAttach(newPictures);
+      if (newPictures.length > 0) {
+        // const foundPictures = await findAndAttach(newPictures);
 
-           if (!foundPictures) {
-             return res.status(500).json({
-               success: false,
-               toasts: ['Server was unable to process pictures'],
-             });
-           }
-         }
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures']
+          });
+        }
+      }
 
-         if (oldPictures.length > 0) {
-           const foundPictures = await findAndDelete(oldPictures);
+      if (oldPictures.length > 0) {
+        // const foundPictures = await findAndDelete(oldPictures);
 
-           if (!foundPictures) {
-             return res.status(500).json({
-               success: false,
-               toasts: ['Server was unable to process pictures'],
-             });
-           }
-         }
-
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures']
+          });
+        }
+      }
 
       if (
         req.user.role === CUSTOMER &&
@@ -1045,7 +1050,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action'],
+          toasts: ['Not authorized for this action']
         });
       }
 
@@ -1082,16 +1087,16 @@ router.put(
               usp: usp,
               pictures: pictures,
               featuredPicture: featuredPicture,
-              videoLink: videoLink,
-            },
-          },
+              videoLink: videoLink
+            }
+          }
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.',
+        message: 'Successfully updated property.'
       });
     } catch (err) {
       console.log(err);
@@ -1100,7 +1105,7 @@ router.put(
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred'],
+        toasts: ['Server error occurred']
       });
     }
   }
@@ -1133,7 +1138,7 @@ router.post(
       featuredPicture,
       brochureLink,
       videoLink,
-      possessionBy,
+      possessionBy
     } = body;
 
     const checkDiff = _.difference(Object.keys(units), apartmentTypes);
@@ -1163,7 +1168,7 @@ router.post(
       featuredPicture: featuredPicture,
       brochureLink: brochureLink,
       videoLink: videoLink,
-      possessionBy: possessionBy,
+      possessionBy: possessionBy
     });
 
     if (error) {
@@ -1171,14 +1176,14 @@ router.post(
     }
 
     try {
-       const foundPictures = await findAndAttach(pictures);
+      // const foundPictures = await findAndAttach(pictures);
 
-       if (!foundPictures) {
-         return res.status(500).json({
-           success: false,
-           toasts: ['Server was unable to process pictures'],
-         });
-       }
+      if (!foundPictures) {
+        return res.status(500).json({
+          success: false,
+          toasts: ['Server was unable to process pictures']
+        });
+      }
 
       const listing = new Listing({
         state: SUBMITTED, // TODO: Change this to Submitted once Dashboard is ready
@@ -1201,18 +1206,18 @@ router.post(
           pictures: pictures,
           featuredPicture: featuredPicture,
           brochureLink: brochureLink,
-          videoLink: videoLink,
-        },
+          videoLink: videoLink
+        }
       });
 
       await listing.save();
 
-       await onListingSubmittedEmail(user._id);
+      await onListingSubmittedEmail(user._id);
 
       return res.status(201).json({
         success: true,
         payload: decorateProject(listing),
-        message: 'Sell Project Property added successfully.',
+        message: 'Sell Project Property added successfully.'
       });
     } catch (err) {
       console.log(err);
@@ -1221,7 +1226,7 @@ router.post(
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred'],
+        toasts: ['Server error occurred']
       });
     }
   }
@@ -1255,7 +1260,7 @@ router.put(
       featuredPicture,
       brochureLink,
       videoLink,
-      possessionBy,
+      possessionBy
     } = body;
 
     const checkDiff = _.difference(Object.keys(units), apartmentTypes);
@@ -1270,7 +1275,7 @@ router.put(
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id'],
+        toasts: ['Invalid Listing id']
       });
     }
 
@@ -1292,7 +1297,7 @@ router.put(
       featuredPicture: featuredPicture,
       brochureLink: brochureLink,
       videoLink: videoLink,
-      possessionBy: possessionBy,
+      possessionBy: possessionBy
     });
 
     if (error) {
@@ -1300,47 +1305,46 @@ router.put(
     }
 
     try {
-       const listing = await Listing.findOne({ _id });
+      const listing = await Listing.findOne({ _id });
 
-       if (!listing) {
-         return res.status(404).json({
-           success: false,
-           toasts: ['Listing with the given listingId was not found.'],
-         });
-       }
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          toasts: ['Listing with the given listingId was not found.']
+        });
+      }
 
-       const newPictures = _.difference(
-         [...pictures],
-         [...listing.sellproject.pictures]
-       );
+      const newPictures = _.difference(
+        [...pictures],
+        [...listing.sellproject.pictures]
+      );
 
-       const oldPictures = _.difference(
-         [...listing.sellproject.pictures],
-         [...pictures]
-       );
+      const oldPictures = _.difference(
+        [...listing.sellproject.pictures],
+        [...pictures]
+      );
 
-         if (newPictures.length > 0) {
-           const foundPictures = await findAndAttach(newPictures);
+      if (newPictures.length > 0) {
+        // const foundPictures = await findAndAttach(newPictures);
 
-           if (!foundPictures) {
-             return res.status(500).json({
-               success: false,
-               toasts: ['Server was unable to process pictures'],
-             });
-           }
-         }
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures']
+          });
+        }
+      }
 
-         if (oldPictures.length > 0) {
-           const foundPictures = await findAndDelete(oldPictures);
+      if (oldPictures.length > 0) {
+        // const foundPictures = await findAndDelete(oldPictures);
 
-           if (!foundPictures) {
-             return res.status(500).json({
-               success: false,
-               toasts: ['Server was unable to process pictures'],
-             });
-           }
-         }
-
+        if (!foundPictures) {
+          return res.status(500).json({
+            success: false,
+            toasts: ['Server was unable to process pictures']
+          });
+        }
+      }
 
       if (
         req.user.role === CUSTOMER &&
@@ -1348,7 +1352,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action'],
+          toasts: ['Not authorized for this action']
         });
       }
 
@@ -1373,16 +1377,16 @@ router.put(
               pictures: pictures,
               featuredPicture: featuredPicture,
               brochureLink: brochureLink,
-              videoLink: videoLink,
-            },
-          },
+              videoLink: videoLink
+            }
+          }
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.',
+        message: 'Successfully updated property.'
       });
     } catch (err) {
       console.log(err);
@@ -1391,7 +1395,7 @@ router.put(
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred'],
+        toasts: ['Server error occurred']
       });
     }
   }
@@ -1488,17 +1492,17 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
       { new: true }
     );
 
-    if(state == APPROVED){
-       const user = await User.findById(listing.createdBy);
-       let customerName = user.name.first + ' ' + user.name.last;
+    if (state == APPROVED) {
+      const user = await User.findById(listing.createdBy);
+      let customerName = user.name.first + ' ' + user.name.last;
       await sendMail({
         to: user.email,
         from: process.env.SMTPUSER,
         subject: 'Your listing is live!',
         template: 'approvedListing',
         templateVars: {
-          name: customerName,
-        },
+          name: customerName
+        }
       });
     }
 
