@@ -41,6 +41,7 @@ const deleteStrayUploads = async () => {
     try {
       //Reading all files in public/uploaded folder.
       const files = fs.readdirSync(uploadDirectory);
+      console.log(files);
 
       //Fetching all images's path in Upload collection.
       const allUploads = await Upload.find({}, '-_id path');
