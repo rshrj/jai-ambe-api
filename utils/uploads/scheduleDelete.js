@@ -3,9 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const Upload = require('../../models/Upload');
-const uploadDirectory = require('./checkUploadFolder');
+const {uploadsFolder, deletesFolder} = require('./checkUploadFolder');
 
-const delay = process.env.DELETE_DELAY || 30;
+const delay = parseInt(process.env.DELETE_DELAY || '30');
+
+const safetyOn = process.env.SAFETYON || true;
+
+const deleteFile = (imagePath) => safetyOn ? fs.renameSync(imagePath, path.join(deletesFolder, imagePath.split('/').pop())) : fs.unlinkSync(imagePath);
 
 const scheduleDelete = (uploadId) => {
   //Calculating 30 min later time.
@@ -29,23 +33,27 @@ const scheduleDelete = (uploadId) => {
         console.log(`Error while doing a scheduled delete: ${err}`);
       }
 
+      const filename = upload.path.split('/').pop();
+
       const imagePath = path.join(
-        uploadDirectory,
-        upload.path.split('/').pop()
+        uploadsFolder,
+        filename
       );
 
       if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+        console.log(`${filename} not attached for ${delay} minutes, deleting it...`);
+        deleteFile(imagePath);
       }
     }.bind(null, uploadId)
   );
 };
 
+
 const deleteStrayUploads = async () =>
   scheduler.scheduleJob(`*/${delay} * * * *`, async function () {
     try {
       //Reading all files in public/uploaded folder.
-      const currentFiles = fs.readdirSync(uploadDirectory);
+      const currentFiles = fs.readdirSync(uploadsFolder);
 
       //Fetching all images's path in Upload collection.
       const validUploads = (await Upload.find({ attached: true })).map(
@@ -54,36 +62,19 @@ const deleteStrayUploads = async () =>
 
       const filesToDelete = _.difference(currentFiles, validUploads);
 
-      console.log(filesToDelete);
+      if (_.isEmpty(filesToDelete)) {
+        return;
+      }
 
-      // if (files.length > 0) {
-      //   let allImages = [];
-      //   if (allUploads.length > 0) {
-      //     allImages = allUploads.map((u) => u.path.split('/').pop());
-      //   }
+      console.log(`${filesToDelete.length} stray files found, deleting...`)
+      console.log(`${filesToDelete.join('\n')}`);
 
-      //   const imagesToDelete = _.difference(files, allImages);
+      filesToDelete.map(fileToDelete => deleteFile(path.join(uploadsFolder, fileToDelete)));
 
-      //   console.log('imagesToDelete: ');
-      //   console.log(imagesToDelete);
+      await Upload.findAndDelete({ attached: false });
 
-      //   if (imagesToDelete.length > 0) {
-      //     imagesToDelete.forEach((image) => {
-      //       let deleteImagePath = uploadDirectory + '/' + image;
-      //       try {
-      //         if (fs.existsSync(deleteImagePath)) {
-      //           fs.unlinkSync(deleteImagePath);
-      //         }
-      //       } catch (err) {
-      //         console.log(err);
-      //         //TODO: Some kind of email alert or logger needed here.
-      //       }
-      //     });
-      //   }
-      // }
     } catch (err) {
       console.log(err);
-      //TODO: Some kind of email alert or logger needed here.
     }
   });
 
