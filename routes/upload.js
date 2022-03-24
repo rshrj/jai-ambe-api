@@ -6,7 +6,7 @@ const auth = require('../utils/auth');
 const { CUSTOMER, ADMIN } = require('../models/User/roles');
 const { nanoid } = require('nanoid');
 const Upload = require('../models/Upload');
-const scheduleDelete = require('../utils/uploads/scheduleDelete');
+const { scheduleDelete } = require('../utils/uploads/scheduleDelete');
 require('../utils/uploads/checkUploadFolder');
 
 const uploadSettings = {
