@@ -13,30 +13,36 @@ const scheduleDelete = (uploadId) => {
   date.setMinutes(date.getMinutes() + delay);
 
   //Node Scheduler
-  const job = scheduler.scheduleJob(
+  return scheduler.scheduleJob(
     date,
     async function (id) {
       const upload = await Upload.findById(id);
 
-      if (!upload.attached) {
-        //if file is not used in any listings then delete it from Upload collection & public/uploaded folder.
+      if (upload.attached) {
+        return;
+      }
+
+      //if file is not used in any listings then delete it from Upload collection & public/uploaded folder.
+      try {
         await Upload.findByIdAndDelete(id);
+      } catch (err) {
+        console.log(`Error while doing a scheduled delete: ${err}`);
+      }
 
-        const imagePath = path.join(
-          uploadDirectory,
-          upload.path.split('/').pop()
-        );
+      const imagePath = path.join(
+        uploadDirectory,
+        upload.path.split('/').pop()
+      );
 
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
       }
     }.bind(null, uploadId)
   );
 };
 
-const deleteStrayUploads = async () => {
-  const job = scheduler.scheduleJob(`*/${delay} * * * *`, async function () {
+const deleteStrayUploads = async () =>
+  scheduler.scheduleJob(`*/${delay} * * * *`, async function () {
     try {
       //Reading all files in public/uploaded folder.
       const currentFiles = fs.readdirSync(uploadDirectory);
@@ -80,6 +86,5 @@ const deleteStrayUploads = async () => {
       //TODO: Some kind of email alert or logger needed here.
     }
   });
-};
 
 module.exports = { scheduleDelete, deleteStrayUploads };
