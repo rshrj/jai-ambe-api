@@ -5,10 +5,12 @@ const _ = require('lodash');
 const Upload = require('../../models/Upload');
 const uploadDirectory = require('./checkUploadFolder');
 
+const delay = process.env.DELETE_DELAY || 30;
+
 const scheduleDelete = (uploadId) => {
   //Calculating 30 min later time.
   let date = new Date();
-  date.setMinutes(date.getMinutes() + 30);
+  date.setMinutes(date.getMinutes() + delay);
 
   //Node Scheduler
   const job = scheduler.scheduleJob(
@@ -35,7 +37,7 @@ const scheduleDelete = (uploadId) => {
 };
 
 const deleteStrayUploads = async () => {
-  const job = scheduler.scheduleJob('*/30 * * * *', async function () {
+  const job = scheduler.scheduleJob(`*/${delay} * * * *`, async function () {
     try {
       //Reading all files in public/uploaded folder.
       const files = fs.readdirSync(uploadDirectory);
@@ -50,6 +52,9 @@ const deleteStrayUploads = async () => {
         }
 
         const imagesToDelete = _.difference(files, allImages);
+        
+        console.log('imagesToDelete: ');
+        console.log(imagesToDelete);
 
         if (imagesToDelete.length > 0) {
           imagesToDelete.forEach((image) => {
