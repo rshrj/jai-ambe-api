@@ -33,44 +33,48 @@ const scheduleDelete = (uploadId) => {
       }
     }.bind(null, uploadId)
   );
-
 };
 
 const deleteStrayUploads = async () => {
   const job = scheduler.scheduleJob(`*/${delay} * * * *`, async function () {
     try {
       //Reading all files in public/uploaded folder.
-      const files = fs.readdirSync(uploadDirectory);
-      console.log(files);
+      const currentFiles = fs.readdirSync(uploadDirectory);
 
       //Fetching all images's path in Upload collection.
-      const allUploads = await Upload.find({}, '-_id path');
+      const validUploads = (await Upload.find({ attached: true })).map(
+        (upload) => upload.path.split('/').pop()
+      );
 
-      if (files.length > 0) {
-        let allImages = [];
-        if (allUploads.length > 0) {
-          allImages = allUploads.map((u) => u.path.split('/').pop());
-        }
+      const filesToDelete = _.difference(currentFiles, validUploads);
 
-        const imagesToDelete = _.difference(files, allImages);
-        
-        console.log('imagesToDelete: ');
-        console.log(imagesToDelete);
+      console.log(filesToDelete);
 
-        if (imagesToDelete.length > 0) {
-          imagesToDelete.forEach((image) => {
-            let deleteImagePath = uploadDirectory + '/' + image;
-            try {
-              if (fs.existsSync(deleteImagePath)) {
-                fs.unlinkSync(deleteImagePath);
-              }
-            } catch (err) {
-              console.log(err);
-              //TODO: Some kind of email alert or logger needed here.
-            }
-          });
-        }
-      }
+      // if (files.length > 0) {
+      //   let allImages = [];
+      //   if (allUploads.length > 0) {
+      //     allImages = allUploads.map((u) => u.path.split('/').pop());
+      //   }
+
+      //   const imagesToDelete = _.difference(files, allImages);
+
+      //   console.log('imagesToDelete: ');
+      //   console.log(imagesToDelete);
+
+      //   if (imagesToDelete.length > 0) {
+      //     imagesToDelete.forEach((image) => {
+      //       let deleteImagePath = uploadDirectory + '/' + image;
+      //       try {
+      //         if (fs.existsSync(deleteImagePath)) {
+      //           fs.unlinkSync(deleteImagePath);
+      //         }
+      //       } catch (err) {
+      //         console.log(err);
+      //         //TODO: Some kind of email alert or logger needed here.
+      //       }
+      //     });
+      //   }
+      // }
     } catch (err) {
       console.log(err);
       //TODO: Some kind of email alert or logger needed here.
