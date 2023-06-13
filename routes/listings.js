@@ -1,57 +1,57 @@
-const router = require('express').Router();
-const mongoose = require('mongoose');
-const FuzzySearch = require('fuzzy-search');
-const _ = require('lodash');
+const router = require("express").Router();
+const mongoose = require("mongoose");
+const FuzzySearch = require("fuzzy-search");
+const _ = require("lodash");
 
-const Listing = require('../models/Listing');
+const Listing = require("../models/Listing");
 const {
   listingTypes: { RENT_LEASE, SELL_APARTMENT, SELL_PROJECT },
-  listingState: { SUBMITTED, APPROVED, REJECTED, DEACTIVATED }
-} = require('../models/Listing/enums');
+  listingState: { SUBMITTED, APPROVED, REJECTED, DEACTIVATED },
+} = require("../models/Listing/enums");
 const {
   RentLeaseValidation,
   SellApartmentValidation,
   SellProjectValidation,
   FuzzySearchValidation,
-  ParticularListingValidation
-} = require('../utils/validation/listing');
-const { CUSTOMER, ADMIN } = require('../models/User/roles');
-const User = require('../models/User');
-const auth = require('../utils/auth/index');
-const checkVerified = require('../utils/auth/checkVerified');
-const checkError = require('../utils/error/checkError');
-const objToArray = require('../utils/helpers/objToArray');
-const decorateProject = require('../utils/helpers/decorateProject');
-// const {
-//   findAndAttach,
-//   findAndDelete
-// } = require('../utils/uploads/attachUpload');
-const sendMail = require('../utils/mailing/sendmail');
+  ParticularListingValidation,
+} = require("../utils/validation/listing");
+const { CUSTOMER, ADMIN } = require("../models/User/roles");
+const User = require("../models/User");
+const auth = require("../utils/auth/index");
+const checkVerified = require("../utils/auth/checkVerified");
+const checkError = require("../utils/error/checkError");
+const objToArray = require("../utils/helpers/objToArray");
+const decorateProject = require("../utils/helpers/decorateProject");
+const {
+  findAndAttach,
+  findAndDelete,
+} = require("../utils/uploads/attachUpload");
+const sendMail = require("../utils/mailing/sendmail");
 
 async function onListingSubmittedEmail(id) {
   const user = await User.findById(id);
-  let customerName = user.name.first + ' ' + user.name.last;
+  let customerName = user.name.first + " " + user.name.last;
 
   //Email to Customer
   await sendMail({
     to: user.email,
     from: process.env.SMTPUSER,
-    subject: 'Your listing has been successfully submitted!',
-    template: 'newListingCustomer',
+    subject: "Your listing has been successfully submitted!",
+    template: "newListingCustomer",
     templateVars: {
-      name: customerName
-    }
+      name: customerName,
+    },
   });
 
   //Email to Admin
   await sendMail({
     to: process.env.ADMIN_EMAIL,
     from: process.env.SMTPUSER,
-    subject: 'Approval required for new listing',
-    template: 'newListingAdmin',
+    subject: "Approval required for new listing",
+    template: "newListingAdmin",
     templateVars: {
-      name: customerName
-    }
+      name: customerName,
+    },
   });
 }
 
@@ -75,20 +75,20 @@ async function onListingSubmittedEmail(id) {
 // @route   GET listings/featured
 // @desc    To fetch featured properties.
 // @access  Public
-router.get('/featured', async (req, res) => {
+router.get("/featured", async (req, res) => {
   const buySize = 8;
   const rentSize = 4;
 
   try {
     let buy = await Listing.find({
       state: APPROVED,
-      type: { $in: [SELL_APARTMENT, SELL_PROJECT] }
+      type: { $in: [SELL_APARTMENT, SELL_PROJECT] },
     })
-      .sort('-createdAt')
+      .sort("-createdAt")
       .limit(buySize);
 
     let rent = await Listing.find({ state: APPROVED, type: RENT_LEASE })
-      .sort('-createdAt')
+      .sort("-createdAt")
       .limit(rentSize);
 
     return res.json({
@@ -97,14 +97,14 @@ router.get('/featured', async (req, res) => {
         buy: buy.map((listing) =>
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing
         ),
-        rent
-      }
+        rent,
+      },
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -112,13 +112,13 @@ router.get('/featured', async (req, res) => {
 // @route   GET listings/fuzzy
 // @desc    To fetch particular type of listings with query
 // @access  Public
-router.post('/fuzzy', async (req, res) => {
+router.post("/fuzzy", async (req, res) => {
   const { query, type } = req.body;
 
   //Validation
   const { error, value } = checkError(FuzzySearchValidation, {
     query,
-    type
+    type,
   });
 
   if (error) {
@@ -128,14 +128,14 @@ router.post('/fuzzy', async (req, res) => {
   try {
     let listings = await Listing.find({
       state: APPROVED,
-      type: { $in: type }
+      type: { $in: type },
     });
 
     let fields = type.reduce(
       (p, c) => {
         return [...p, `${c}.location`, `${c}.landmark`];
       },
-      ['name']
+      ["name"]
     );
 
     const searcher = new FuzzySearch(listings, fields);
@@ -149,13 +149,13 @@ router.post('/fuzzy', async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: "Properties data fetched successfully.",
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -163,14 +163,14 @@ router.post('/fuzzy', async (req, res) => {
 // @route   GET listings/particular
 // @desc    To fetch particular type of listings
 // @access  Public
-router.post('/particular', async (req, res) => {
+router.post("/particular", async (req, res) => {
   let { page, size, type } = req.body;
 
   //Validation
   const { error, value } = checkError(ParticularListingValidation, {
     page,
     size,
-    type
+    type,
   });
 
   if (error) {
@@ -195,13 +195,13 @@ router.post('/particular', async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: "Properties data fetched successfully.",
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -210,18 +210,18 @@ router.post('/particular', async (req, res) => {
 // @desc    ADMIN =>  Can  fetch all listings of a user
 //          CUSTOMER => Can fetch his/her all listings.
 // @access  CUSTOMER, ADMIN
-router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
+router.get("/all", auth(CUSTOMER, ADMIN), async (req, res) => {
   const { user } = req;
 
   try {
     let listings = [];
 
     if (user.role == ADMIN) {
-      listings = await Listing.find().populate('createdBy', 'name');
+      listings = await Listing.find().populate("createdBy", "name");
     } else {
       listings = await Listing.find({ createdBy: user._id }).populate(
-        'createdBy',
-        'name'
+        "createdBy",
+        "name"
       );
     }
 
@@ -230,13 +230,13 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: "Properties data fetched successfully.",
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -245,16 +245,16 @@ router.get('/all', auth(CUSTOMER, ADMIN), async (req, res) => {
 // @desc    To fetch particular listing with listingId.
 // @access  Private
 router.get(
-  '/:listingId',
+  "/:listingId",
   async (req, res, next) => {
     const {
-      params: { listingId }
+      params: { listingId },
     } = req;
 
     if (!mongoose.isValidObjectId(listingId)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Sorry, nothing found :(']
+        toasts: ["Sorry, nothing found :("],
       });
     }
 
@@ -264,7 +264,7 @@ router.get(
       if (!listing) {
         return res.status(404).json({
           success: false,
-          toasts: ['Sorry, nothing found :(']
+          toasts: ["Sorry, nothing found :("],
         });
       }
 
@@ -273,7 +273,7 @@ router.get(
           success: true,
           payload:
             listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-          message: 'Listing details found successfully.'
+          message: "Listing details found successfully.",
         });
       }
 
@@ -283,7 +283,7 @@ router.get(
       console.log(err);
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   },
@@ -297,7 +297,7 @@ router.get(
         success: true,
         payload:
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-        message: 'Listing details found successfully.'
+        message: "Listing details found successfully.",
       });
     }
 
@@ -309,13 +309,13 @@ router.get(
         success: true,
         payload:
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-        message: 'Listing details found successfully.'
+        message: "Listing details found successfully.",
       });
     }
 
     return res.status(403).json({
       success: false,
-      toasts: ['Sorry, nothing found :(']
+      toasts: ["Sorry, nothing found :("],
     });
   }
 );
@@ -323,21 +323,21 @@ router.get(
 // @route   GET listings/related/:listingId
 // @desc    To fetch related properties.
 // @access  PUBLIC
-router.get('/related/:listingId', async (req, res) => {
+router.get("/related/:listingId", async (req, res) => {
   const size = 4;
 
   if (!mongoose.isValidObjectId(req.params.listingId)) {
     return res.status(400).json({
       success: false,
-      errors: { listingId: 'Invalid listingId provided.' }
+      errors: { listingId: "Invalid listingId provided." },
     });
   }
 
   try {
     let listings = await Listing.find({
-      state: APPROVED
+      state: APPROVED,
     })
-      .sort('-createdAt')
+      .sort("-createdAt")
       .limit(size);
 
     return res.json({
@@ -346,13 +346,13 @@ router.get('/related/:listingId', async (req, res) => {
         .map((listing) =>
           listing.type === SELL_PROJECT ? decorateProject(listing) : listing
         )
-        .filter((listing) => listing._id.toString() !== req.params.listingId)
+        .filter((listing) => listing._id.toString() !== req.params.listingId),
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -413,14 +413,14 @@ router.get('/related/:listingId', async (req, res) => {
 // @route   POST listings/user
 // @desc    ADMIN =>  Can provide userId to fetch all listings of a user. body => { listingId }
 // @access  ADMIN
-router.post('/user', auth(ADMIN), async (req, res) => {
+router.post("/user", auth(ADMIN), async (req, res) => {
   const { userId } = req.body;
 
   try {
     if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).json({
         success: false,
-        errors: { userId: 'Invalid userId provided.' }
+        errors: { userId: "Invalid userId provided." },
       });
     }
 
@@ -431,13 +431,13 @@ router.post('/user', auth(ADMIN), async (req, res) => {
       payload: listings.map((listing) =>
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing
       ),
-      message: 'Properties data fetched successfully.'
+      message: "Properties data fetched successfully.",
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -448,7 +448,7 @@ router.post('/user', auth(ADMIN), async (req, res) => {
  @access  CUSTOMER, ADMIN
 */
 router.post(
-  '/add/rentlease',
+  "/add/rentlease",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -478,7 +478,7 @@ router.post(
       pictures,
       featuredPicture,
       videoLink,
-      societyName
+      societyName,
     } = body;
 
     //Validation
@@ -508,7 +508,7 @@ router.post(
       willingToRentOutTo: willingToRentOutTo,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink
+      videoLink: videoLink,
     });
 
     if (error) {
@@ -516,12 +516,12 @@ router.post(
     }
 
     try {
-      // const foundPictures = await findAndAttach(pictures);
+      const foundPictures = await findAndAttach(pictures);
 
       if (!foundPictures) {
         return res.status(500).json({
           success: false,
-          toasts: ['Server was unable to process pictures']
+          toasts: ["Server was unable to process pictures"],
         });
       }
 
@@ -555,8 +555,8 @@ router.post(
           willingToRentOutTo: willingToRentOutTo,
           pictures: pictures,
           featuredPicture: featuredPicture,
-          videoLink: videoLink
-        }
+          videoLink: videoLink,
+        },
       });
 
       await listing.save();
@@ -566,15 +566,15 @@ router.post(
       return res.status(201).json({
         success: true,
         payload: listing,
-        message: 'Rent/Lease Property added successfully.'
+        message: "Rent/Lease Property added successfully.",
       });
     } catch (err) {
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -586,7 +586,7 @@ router.post(
  @access  CUSTOMER, ADMIN
 */
 router.put(
-  '/update/rentlease',
+  "/update/rentlease",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -617,13 +617,13 @@ router.put(
       pictures,
       featuredPicture,
       videoLink,
-      societyName
+      societyName,
     } = body;
 
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id']
+        toasts: ["Invalid Listing id"],
       });
     }
 
@@ -654,7 +654,7 @@ router.put(
       willingToRentOutTo: willingToRentOutTo,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink
+      videoLink: videoLink,
     });
 
     if (error) {
@@ -667,7 +667,7 @@ router.put(
       if (!listing) {
         return res.status(404).json({
           success: false,
-          toasts: ['Listing with the given listingId was not found.']
+          toasts: ["Listing with the given listingId was not found."],
         });
       }
 
@@ -682,23 +682,23 @@ router.put(
       );
 
       if (newPictures.length > 0) {
-        // const foundPictures = await findAndAttach(newPictures);
+        const foundPictures = await findAndAttach(newPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
 
       if (oldPictures.length > 0) {
-        // const foundPictures = await findAndDelete(oldPictures);
+        const foundPictures = await findAndDelete(oldPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
@@ -709,7 +709,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action']
+          toasts: ["Not authorized for this action"],
         });
       }
 
@@ -743,25 +743,25 @@ router.put(
               willingToRentOutTo: willingToRentOutTo,
               pictures: pictures,
               featuredPicture: featuredPicture,
-              videoLink: videoLink
-            }
-          }
+              videoLink: videoLink,
+            },
+          },
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.'
+        message: "Successfully updated property.",
       });
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -773,7 +773,7 @@ router.put(
  @access  CUSTOMER, ADMIN
 */
 router.post(
-  '/add/sellapartment',
+  "/add/sellapartment",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -806,7 +806,7 @@ router.post(
       usp,
       pictures,
       featuredPicture,
-      videoLink
+      videoLink,
     } = body;
 
     //Validation
@@ -839,7 +839,7 @@ router.post(
       usp: usp,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink
+      videoLink: videoLink,
     });
 
     if (error) {
@@ -847,12 +847,12 @@ router.post(
     }
 
     try {
-      // const foundPictures = await findAndAttach(pictures);
+      const foundPictures = await findAndAttach(pictures);
 
       if (!foundPictures) {
         return res.status(500).json({
           success: false,
-          toasts: ['Server was unable to process pictures']
+          toasts: ["Server was unable to process pictures"],
         });
       }
 
@@ -889,8 +889,8 @@ router.post(
           usp: usp,
           pictures: pictures,
           featuredPicture: featuredPicture,
-          videoLink: videoLink
-        }
+          videoLink: videoLink,
+        },
       });
 
       await listing.save();
@@ -900,16 +900,16 @@ router.post(
       return res.status(201).json({
         success: true,
         payload: listing,
-        message: 'Sell Apartment Property added successfully.'
+        message: "Sell Apartment Property added successfully.",
       });
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -921,7 +921,7 @@ router.post(
  @access  CUSTOMER, ADMIN
 */
 router.put(
-  '/update/sellapartment',
+  "/update/sellapartment",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -955,13 +955,13 @@ router.put(
       usp,
       pictures,
       featuredPicture,
-      videoLink
+      videoLink,
     } = body;
 
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id']
+        toasts: ["Invalid Listing id"],
       });
     }
 
@@ -995,7 +995,7 @@ router.put(
       usp: usp,
       pictures: pictures,
       featuredPicture: featuredPicture,
-      videoLink: videoLink
+      videoLink: videoLink,
     });
 
     if (error) {
@@ -1008,7 +1008,7 @@ router.put(
       if (!listing) {
         return res.status(404).json({
           success: false,
-          toasts: ['Listing with the given listingId was not found.']
+          toasts: ["Listing with the given listingId was not found."],
         });
       }
 
@@ -1023,23 +1023,23 @@ router.put(
       );
 
       if (newPictures.length > 0) {
-        // const foundPictures = await findAndAttach(newPictures);
+        const foundPictures = await findAndAttach(newPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
 
       if (oldPictures.length > 0) {
-        // const foundPictures = await findAndDelete(oldPictures);
+        const foundPictures = await findAndDelete(oldPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
@@ -1050,7 +1050,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action']
+          toasts: ["Not authorized for this action"],
         });
       }
 
@@ -1087,25 +1087,25 @@ router.put(
               usp: usp,
               pictures: pictures,
               featuredPicture: featuredPicture,
-              videoLink: videoLink
-            }
-          }
+              videoLink: videoLink,
+            },
+          },
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.'
+        message: "Successfully updated property.",
       });
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -1117,7 +1117,7 @@ router.put(
  @access  CUSTOMER, ADMIN
 */
 router.post(
-  '/add/sellproject',
+  "/add/sellproject",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -1138,7 +1138,7 @@ router.post(
       featuredPicture,
       brochureLink,
       videoLink,
-      possessionBy
+      possessionBy,
     } = body;
 
     const checkDiff = _.difference(Object.keys(units), apartmentTypes);
@@ -1148,7 +1148,7 @@ router.post(
       });
     }
 
-    let unitsArray = objToArray(units, 'apartmentType');
+    let unitsArray = objToArray(units, "apartmentType");
 
     //Validation
     const { error, value } = checkError(SellProjectValidation, {
@@ -1168,7 +1168,7 @@ router.post(
       featuredPicture: featuredPicture,
       brochureLink: brochureLink,
       videoLink: videoLink,
-      possessionBy: possessionBy
+      possessionBy: possessionBy,
     });
 
     if (error) {
@@ -1176,12 +1176,12 @@ router.post(
     }
 
     try {
-      // const foundPictures = await findAndAttach(pictures);
+      const foundPictures = await findAndAttach(pictures);
 
       if (!foundPictures) {
         return res.status(500).json({
           success: false,
-          toasts: ['Server was unable to process pictures']
+          toasts: ["Server was unable to process pictures"],
         });
       }
 
@@ -1206,8 +1206,8 @@ router.post(
           pictures: pictures,
           featuredPicture: featuredPicture,
           brochureLink: brochureLink,
-          videoLink: videoLink
-        }
+          videoLink: videoLink,
+        },
       });
 
       await listing.save();
@@ -1217,16 +1217,16 @@ router.post(
       return res.status(201).json({
         success: true,
         payload: decorateProject(listing),
-        message: 'Sell Project Property added successfully.'
+        message: "Sell Project Property added successfully.",
       });
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -1238,7 +1238,7 @@ router.post(
  @access  CUSTOMER, ADMIN
 */
 router.put(
-  '/update/sellproject',
+  "/update/sellproject",
   [auth(ADMIN, CUSTOMER), checkVerified],
   async (req, res) => {
     const { body, user } = req;
@@ -1260,7 +1260,7 @@ router.put(
       featuredPicture,
       brochureLink,
       videoLink,
-      possessionBy
+      possessionBy,
     } = body;
 
     const checkDiff = _.difference(Object.keys(units), apartmentTypes);
@@ -1270,12 +1270,12 @@ router.put(
       });
     }
 
-    let unitsArray = objToArray(units, 'apartmentType');
+    let unitsArray = objToArray(units, "apartmentType");
 
     if (!mongoose.isValidObjectId(_id)) {
       return res.status(400).json({
         success: false,
-        toasts: ['Invalid Listing id']
+        toasts: ["Invalid Listing id"],
       });
     }
 
@@ -1297,7 +1297,7 @@ router.put(
       featuredPicture: featuredPicture,
       brochureLink: brochureLink,
       videoLink: videoLink,
-      possessionBy: possessionBy
+      possessionBy: possessionBy,
     });
 
     if (error) {
@@ -1310,7 +1310,7 @@ router.put(
       if (!listing) {
         return res.status(404).json({
           success: false,
-          toasts: ['Listing with the given listingId was not found.']
+          toasts: ["Listing with the given listingId was not found."],
         });
       }
 
@@ -1325,23 +1325,23 @@ router.put(
       );
 
       if (newPictures.length > 0) {
-        // const foundPictures = await findAndAttach(newPictures);
+        const foundPictures = await findAndAttach(newPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
 
       if (oldPictures.length > 0) {
-        // const foundPictures = await findAndDelete(oldPictures);
+        const foundPictures = await findAndDelete(oldPictures);
 
         if (!foundPictures) {
           return res.status(500).json({
             success: false,
-            toasts: ['Server was unable to process pictures']
+            toasts: ["Server was unable to process pictures"],
           });
         }
       }
@@ -1352,7 +1352,7 @@ router.put(
       ) {
         return res.status(403).json({
           success: false,
-          toasts: ['Not authorized for this action']
+          toasts: ["Not authorized for this action"],
         });
       }
 
@@ -1377,25 +1377,25 @@ router.put(
               pictures: pictures,
               featuredPicture: featuredPicture,
               brochureLink: brochureLink,
-              videoLink: videoLink
-            }
-          }
+              videoLink: videoLink,
+            },
+          },
         }
       );
 
       return res.status(200).json({
         success: true,
         payload: listing,
-        message: 'Successfully updated property.'
+        message: "Successfully updated property.",
       });
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
-        console.log(err.message.split(':')[2]);
+        console.log(err.message.split(":")[2]);
       }
       return res.status(500).json({
         success: false,
-        toasts: ['Server error occurred']
+        toasts: ["Server error occurred"],
       });
     }
   }
@@ -1405,15 +1405,15 @@ router.put(
 // @desc    To delete a existing property
 //          body : { listingId }
 // @access  CUSTOMER, ADMIN
-router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
+router.delete("/delete", auth(ADMIN, CUSTOMER), async (req, res) => {
   const {
     body: { listingId },
-    user
+    user,
   } = req;
   if (!mongoose.isValidObjectId(listingId)) {
     return res.status(400).json({
       success: false,
-      errors: { listingId: 'Invalid listingId provided.' }
+      errors: { listingId: "Invalid listingId provided." },
     });
   }
 
@@ -1423,7 +1423,7 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        toasts: ['Listing with the given listingId was not found.']
+        toasts: ["Listing with the given listingId was not found."],
       });
     }
 
@@ -1436,19 +1436,19 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: 'Listing has been deleted successfully.'
+        message: "Listing has been deleted successfully.",
       });
     } else {
       return res.status(403).json({
         success: false,
-        toasts: ['You are not authorized to perform this action.']
+        toasts: ["You are not authorized to perform this action."],
       });
     }
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
@@ -1457,22 +1457,22 @@ router.delete('/delete', auth(ADMIN, CUSTOMER), async (req, res) => {
 // @desc    To update the state of a listing.
 //          body => { listingId, state}
 // @access  ADMIN
-router.put('/updateState', auth(ADMIN), async (req, res) => {
+router.put("/updateState", auth(ADMIN), async (req, res) => {
   const { listingId, state } = req.body;
 
   let errors = {};
 
   if (!mongoose.isValidObjectId(listingId)) {
-    errors = { listingId: 'Invalid listingId provided.' };
+    errors = { listingId: "Invalid listingId provided." };
   }
   if (![SUBMITTED, APPROVED, REJECTED, DEACTIVATED].includes(state)) {
-    errors = { ...errors, state: 'Invalid state provided.' };
+    errors = { ...errors, state: "Invalid state provided." };
   }
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({
       success: false,
-      errors: errors
+      errors: errors,
     });
   }
 
@@ -1482,7 +1482,7 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
     if (!listing) {
       return res.status(404).json({
         success: false,
-        toasts: ['Listing with the given listingId was not found.']
+        toasts: ["Listing with the given listingId was not found."],
       });
     }
 
@@ -1494,15 +1494,15 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
 
     if (state == APPROVED) {
       const user = await User.findById(listing.createdBy);
-      let customerName = user.name.first + ' ' + user.name.last;
+      let customerName = user.name.first + " " + user.name.last;
       await sendMail({
         to: user.email,
         from: process.env.SMTPUSER,
-        subject: 'Your listing is live!',
-        template: 'approvedListing',
+        subject: "Your listing is live!",
+        template: "approvedListing",
         templateVars: {
-          name: customerName
-        }
+          name: customerName,
+        },
       });
     }
 
@@ -1510,13 +1510,13 @@ router.put('/updateState', auth(ADMIN), async (req, res) => {
       success: true,
       payload:
         listing.type === SELL_PROJECT ? decorateProject(listing) : listing,
-      message: `Listing ${state} Successfully.`
+      message: `Listing ${state} Successfully.`,
     });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
       success: false,
-      toasts: ['Server error occurred']
+      toasts: ["Server error occurred"],
     });
   }
 });
